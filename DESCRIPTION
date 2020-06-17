@@ -8,7 +8,7 @@ Authors@R:
            family = "Allen",
            role = c("aut", "cre"),
            email = "michael@velofrog.com")
-Description: Graphics Device Driver, outputting DrawingML (Microsoft Office Drawing Objects) to the clipboard
+Description: Graphics Device Driver, outputting a Microsoft Office Drawing Object to the clipboard
 License: GPL-3
 URL: https://github.com/velofrog/RDrawingML
 BugReports: https://github.com/velofrog/RDrawingML/issues

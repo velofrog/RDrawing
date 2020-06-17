@@ -5,10 +5,10 @@ unix_libs =
 unix_source_cpp = unix/unix_clipboard.cpp
 unix_source_mm =
 
-PKG_LIBS += $(unix_libs)
+PKG_LIBS += $(mac_libs)
 CXX_STD = CXX14
 
-SOURCES_CPP = RcppExports.cpp zip_container.cpp $(unix_source_cpp)
-SOURCES_MM = $(unix_source_mm)
+SOURCES_CPP = RcppExports.cpp zip_container.cpp $(mac_source_cpp)
+SOURCES_MM = $(mac_source_mm)
 OBJECTS = $(SOURCES_CPP:.cpp=.o) $(SOURCES_MM:.mm=.o)
 
