@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  SYS="mac"
+else
+  SYS="unix"
+fi
+
+# Write to Makevars
+sed -e "s|@sys@|$SYS|g" src/Makevars.in > src/Makevars
