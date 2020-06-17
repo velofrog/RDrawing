@@ -1,1 +1,8 @@
 CXX_STD = CXX14
+SOURCES_CPP = RcppExports.cpp windows/win_clipboard.cpp zip_container.cpp
+OBJECTS = $(SOURCES_CPP:.cpp=.o)
+
+
+
+
+
