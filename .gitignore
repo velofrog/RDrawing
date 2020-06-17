@@ -42,5 +42,6 @@ vignettes/*.pdf
 .DS_Store
 *.o
 *.so
+*.dll
 .Rbuildignore
 
