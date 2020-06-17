@@ -5586,7 +5586,7 @@ private:
 
                 mz_zip_reader_end(archive_.get());
 
-                archive_->m_pWrite = &detail::write_callback;
+                archive_->m_pWrite = (mz_file_write_func)&detail::write_callback;
                 archive_->m_pIO_opaque = &buffer_;
                 buffer_ = std::vector<char>();
 
@@ -5614,7 +5614,7 @@ private:
                 break;
         }
 
-        archive_->m_pWrite = &detail::write_callback;
+        archive_->m_pWrite = (mz_file_write_func)&detail::write_callback;
         archive_->m_pIO_opaque = &buffer_;
 
         if(!mz_zip_writer_init(archive_.get(), 0))
