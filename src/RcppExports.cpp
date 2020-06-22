@@ -5,6 +5,19 @@
 
 using namespace Rcpp;
 
+// DrawingMLDevice
+void DrawingMLDevice(double width, double height, double pointsize, std::string font);
+RcppExport SEXP _RDrawingML_DrawingMLDevice(SEXP widthSEXP, SEXP heightSEXP, SEXP pointsizeSEXP, SEXP fontSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type width(widthSEXP);
+    Rcpp::traits::input_parameter< double >::type height(heightSEXP);
+    Rcpp::traits::input_parameter< double >::type pointsize(pointsizeSEXP);
+    Rcpp::traits::input_parameter< std::string >::type font(fontSEXP);
+    DrawingMLDevice(width, height, pointsize, font);
+    return R_NilValue;
+END_RCPP
+}
 // ZipAndSendToClipboard
 void ZipAndSendToClipboard(Rcpp::Environment archive);
 RcppExport SEXP _RDrawingML_ZipAndSendToClipboard(SEXP archiveSEXP) {
@@ -17,6 +30,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_RDrawingML_DrawingMLDevice", (DL_FUNC) &_RDrawingML_DrawingMLDevice, 4},
     {"_RDrawingML_ZipAndSendToClipboard", (DL_FUNC) &_RDrawingML_ZipAndSendToClipboard, 1},
     {NULL, NULL, 0}
 };

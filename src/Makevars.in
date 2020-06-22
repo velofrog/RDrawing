@@ -1,14 +1,21 @@
-mac_libs = -framework Foundation -framework AppKit -lobjc
-mac_source_cpp =
-mac_source_mm = mac/mac_clipboard.mm
-unix_libs =
-unix_source_cpp = unix/unix_clipboard.cpp
-unix_source_mm =
+## Makevars for unix and mac platforms
+## configure replaces occurances of @sys@ with either mac or unix depending on build platform
+
+## mac specific sources and libraries
+	mac_libs = -lobjc
+	mac_source_cpp =
+	mac_source_mm = mac/mac_clipboard.mm mac/mac_platform.mm
+## unix specific sources and libraries
+	unix_libs =
+	unix_source_cpp = unix/unix_clipboard.cpp
+	unix_source_mm =
+##
 
 PKG_LIBS += $(@sys@_libs)
-CXX_STD = CXX14
+CXX_STD = CXX17
+OBJCXXFLAGS += $(CXX17STD)
 
-SOURCES_CPP = RcppExports.cpp zip_container.cpp $(@sys@_source_cpp)
+SOURCES_CPP = RcppExports.cpp zip_container.cpp drawingml_device.cpp xml.cpp drawingml_xml.cpp $(@sys@_source_cpp)
 SOURCES_MM = $(@sys@_source_mm)
 OBJECTS = $(SOURCES_CPP:.cpp=.o) $(SOURCES_MM:.mm=.o)
 

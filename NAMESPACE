@@ -2,6 +2,7 @@
 
 export("%>%")
 export("%T>%")
+export(DrawingMLDevice)
 export(DrawingML_SendToClipboard)
 export(MLContainer_Content_Types)
 export(MLContainer_Drawing)

@@ -1,5 +1,5 @@
-CXX_STD = CXX14
-SOURCES_CPP = RcppExports.cpp windows/win_clipboard.cpp zip_container.cpp
+CXX_STD = CXX17
+SOURCES_CPP = RcppExports.cpp windows/win_clipboard.cpp zip_container.cpp drawingml_device.cpp xml.cpp drawingml_xml.cpp
 OBJECTS = $(SOURCES_CPP:.cpp=.o)
 
 
