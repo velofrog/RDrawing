@@ -1,4 +1,5 @@
 #include <Rcpp.h>
+#include <cmath>
 #include <algorithm>
 #include "drawingml_device.h"
 #include "drawingml_xml.h"
@@ -10,9 +11,9 @@
 void DrawingMLDevice(double width = 23.5 / 2.54, double height = 14.5 / 2.54,
                      double pointsize = 10, std::string font = "Arial") {
 
-  if (isnan(width) || (width <= 0)) width = 23.5 / 2.54;
-  if (isnan(height) || (height <= 0)) height = 14.5 / 2.54;
-  if (isnan(pointsize) || (pointsize <= 0)) pointsize = 10;
+  if (std::isnan(width) || (width <= 0)) width = 23.5 / 2.54;
+  if (std::isnan(height) || (height <= 0)) height = 14.5 / 2.54;
+  if (std::isnan(pointsize) || (pointsize <= 0)) pointsize = 10;
 
   R_GE_checkVersionOrDie(R_GE_version);
   R_CheckDeviceAvailable();
@@ -179,7 +180,7 @@ std::vector<XMLNode> ML_IterateOver(const std::vector<ML_Geom>& objects) {
     }
   }
 #else
-  for (const auto &object : context->objects) {
+  for (const auto &object : objects) {
     for (const auto &node : std::visit(
         [](const ML_BaseType& arg) -> std::vector<XMLNode> { return arg.xml(); }, object))
       nodes.push_back(node);
@@ -359,7 +360,7 @@ void DrawingMLDevice_close(pDevDesc dd) {
     dd->deviceSpecific = NULL;
   }
 
-  catch (std::exception e) {
+  catch (const std::exception& e) {
     throw Rcpp::exception(e.what());
   }
 }
