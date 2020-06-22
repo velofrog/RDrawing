@@ -348,7 +348,7 @@ std::vector<XMLNode> ML_Polyline::xml() const {
     XMLNode("a:path", {{"w",emu::str(x1-x0)},{"h",emu::str(y1-y0)}}) <<
       (XMLNode("a:moveTo") << XML_pt(points[0].first-x0, points[0].second-y0));
 
-  for (int idx=1; idx<points.size(); idx++)
+  for (std::size_t idx=1; idx<points.size(); idx++)
     pathnode = pathnode << (XMLNode("a:lnTo") << XML_pt(points[idx].first-x0, points[idx].second-y0));
 
   return {
@@ -381,7 +381,7 @@ std::vector<XMLNode> ML_Polygon::xml() const {
     XMLNode("a:path", {{"w",emu::str(x1-x0)},{"h",emu::str(y1-y0)}}) <<
       (XMLNode("a:moveTo") << XML_pt(points[0].first-x0, points[0].second-y0));
 
-  for (int idx=1; idx<points.size(); idx++)
+  for (std::size_t idx=1; idx<points.size(); idx++)
     pathnode = pathnode << (XMLNode("a:lnTo") << XML_pt(points[idx].first-x0, points[idx].second-y0));
 
   pathnode = pathnode << XMLNode("a:close");
