@@ -83,8 +83,10 @@ struct ML_Group;
 struct ML_Line;
 struct ML_Rect;
 struct ML_Circle;
+struct ML_Polyline;
+struct ML_Polygon;
 
-using ML_Geom = std::variant<ML_Group, ML_Line, ML_Rect, ML_Circle>;
+using ML_Geom = std::variant<ML_Group, ML_Line, ML_Rect, ML_Circle, ML_Polyline, ML_Polygon>;
 
 struct ML_BaseType {
   int id;
@@ -162,6 +164,30 @@ struct ML_Circle : ML_BaseType {
   virtual std::vector<XMLNode> xml() const;
 };
 
+struct ML_Polyline : ML_BaseType {
+  std::vector<std::pair<double, double>> points;
+  ML_Attributes attributes;
+
+  ML_Polyline(int id, std::vector<std::pair<double, double>> &points, ML_Attributes attributes) {
+    this->id = id;
+    this->points = points;
+    this->attributes = attributes;
+  }
+  virtual std::vector<XMLNode> xml() const;
+};
+
+struct ML_Polygon : ML_BaseType {
+  std::vector<std::pair<double, double>> points;
+  ML_Attributes attributes;
+
+  ML_Polygon(int id, std::vector<std::pair<double, double>> &points, ML_Attributes attributes) {
+    this->id = id;
+    this->points = points;
+    this->attributes = attributes;
+  }
+  virtual std::vector<XMLNode> xml() const;
+};
+
 struct ML_Context {
   int id;
   double canvasWidth;
@@ -190,3 +216,6 @@ void DrawingMLDevice_path(double *x, double *y, int nploy, int *nper, Rboolean w
 void DrawingMLDevice_rect(double x0, double y0, double x1, double y1, const pGEcontext gc, pDevDesc dd);
 void DrawingMLDevice_line(double x1, double y1, double x2, double y2, const pGEcontext gc, pDevDesc dd);
 void DrawingMLDevice_circle(double x, double y, double r, const pGEcontext gc, pDevDesc dd);
+void DrawingMLDevice_polyline(int n, double *x, double *y, const pGEcontext gc, pDevDesc dd);
+void DrawingMLDevice_polygon(int n, double *x, double *y, const pGEcontext gc, pDevDesc dd);
+

@@ -83,6 +83,10 @@ void DrawingMLDevice(double width = 23.5 / 2.54, double height = 14.5 / 2.54,
     dev->rect = DrawingMLDevice_rect;
     dev->line = DrawingMLDevice_line;
     dev->circle = DrawingMLDevice_circle;
+    dev->path = NULL;
+    dev->polyline = DrawingMLDevice_polyline;
+    dev->polygon = DrawingMLDevice_polygon;
+    // dev->text = DrawingMLDevice_text;
 
     dev->deviceSpecific = new ML_Context();
 
@@ -171,6 +175,10 @@ std::vector<XMLNode> ML_IterateOver(const std::vector<ML_Geom>& objects) {
       ptr = std::get_if<2>(&object); break;
     case 3:
       ptr = std::get_if<3>(&object); break;
+    case 4:
+      ptr = std::get_if<4>(&object); break;
+    case 5:
+      ptr = std::get_if<5>(&object); break;
     }
 
     if (ptr != nullptr) {
@@ -255,6 +263,10 @@ XMLNode XML_ln(ML_Attributes attributes) {
   return XML_ln(attributes.lineWidth, attributes.lineType, attributes.lineColour);
 }
 
+XMLNode XML_pt(double x, double y) {
+  return XMLNode("a:pt", {{"x",emu::str(x)},{"y",emu::str(y)}});
+}
+
 std::vector<XMLNode> ML_Group::xml() const {
   if (interior_objects.size() == 0) {
     return {
@@ -320,6 +332,76 @@ std::vector<XMLNode> ML_Circle::xml() const {
       })
   };
 }
+
+std::vector<XMLNode> ML_Polyline::xml() const {
+  if (points.size() < 2) return {};
+
+  auto minmax_x = std::minmax_element(points.begin(), points.end(), [](auto const& lhs, auto const& rhs){return lhs.first < rhs.first;});
+  double x0 = minmax_x.first->first;
+  double x1 = minmax_x.second->first;
+
+  auto minmax_y = std::minmax_element(points.begin(), points.end(), [](auto const& lhs, auto const& rhs){return lhs.second < rhs.second;});
+  double y0 = minmax_y.first->second;
+  double y1 = minmax_y.second->second;
+
+  XMLNode pathnode =
+    XMLNode("a:path", {{"w",emu::str(x1-x0)},{"h",emu::str(y1-y0)}}) <<
+      (XMLNode("a:moveTo") << XML_pt(points[0].first-x0, points[0].second-y0));
+
+  for (int idx=1; idx<points.size(); idx++)
+    pathnode = pathnode << (XMLNode("a:lnTo") << XML_pt(points[idx].first-x0, points[idx].second-y0));
+
+  return {
+    XMLNode("a:sp") <<
+      XMLNodes({
+        XML_nvSpPr(id, name),
+        XMLNode("a:spPr") <<
+          XMLNodes({
+            XML_xfrm(x0, y0, x1-x0, y1-y0),
+            XMLNode("a:custGeom") << XMLNode("a:avLst") << XMLNode("a:gdLst") <<
+            XMLNode("a:ahLst") << XMLNode("a:cxnLst") << (XMLNode("a:pathLst") << pathnode),
+            XML_ln(attributes)
+          })
+      })
+  };
+}
+
+std::vector<XMLNode> ML_Polygon::xml() const {
+  if (points.size() < 2) return {};
+
+  auto minmax_x = std::minmax_element(points.begin(), points.end(), [](auto const& lhs, auto const& rhs){return lhs.first < rhs.first;});
+  double x0 = minmax_x.first->first;
+  double x1 = minmax_x.second->first;
+
+  auto minmax_y = std::minmax_element(points.begin(), points.end(), [](auto const& lhs, auto const& rhs){return lhs.second < rhs.second;});
+  double y0 = minmax_y.first->second;
+  double y1 = minmax_y.second->second;
+
+  XMLNode pathnode =
+    XMLNode("a:path", {{"w",emu::str(x1-x0)},{"h",emu::str(y1-y0)}}) <<
+      (XMLNode("a:moveTo") << XML_pt(points[0].first-x0, points[0].second-y0));
+
+  for (int idx=1; idx<points.size(); idx++)
+    pathnode = pathnode << (XMLNode("a:lnTo") << XML_pt(points[idx].first-x0, points[idx].second-y0));
+
+  pathnode = pathnode << XMLNode("a:close");
+
+  return {
+      XMLNode("a:sp") <<
+        XMLNodes({
+          XML_nvSpPr(id, name),
+          XMLNode("a:spPr") <<
+            XMLNodes({
+              XML_xfrm(x0, y0, x1-x0, y1-y0),
+              XMLNode("a:custGeom") << XMLNode("a:avLst") << XMLNode("a:gdLst") <<
+              XMLNode("a:ahLst") << XMLNode("a:cxnLst") << (XMLNode("a:pathLst") << pathnode),
+              XML_solidFill(attributes.fillColour),
+              XML_ln(attributes)
+            })
+        })
+    };
+}
+
 
 void DrawingMLDevice_activate(pDevDesc) {
 }
@@ -464,4 +546,34 @@ void DrawingMLDevice_circle(double x, double y, double r, const pGEcontext gc, p
   if (context == NULL) return;
 
   context->objects.push_back(ML_Circle(context->id++, x, y, r, gc));
+}
+
+void DrawingMLDevice_polyline(int n, double *x, double *y, const pGEcontext gc, pDevDesc dd) {
+  Rcpp::Rcout << "_polyline\n";
+
+  if (n < 2) return;
+  if (dd == NULL) return;
+  ML_Context *context = (ML_Context *)dd->deviceSpecific;
+  if (context == NULL) return;
+
+  std::vector<std::pair<double, double>> points;
+  for (int idx=0; idx<n; idx++)
+    points.push_back({x[idx], y[idx]});
+
+  context->objects.push_back(ML_Polyline(context->id++, points, gc));
+}
+
+void DrawingMLDevice_polygon(int n, double *x, double *y, const pGEcontext gc, pDevDesc dd) {
+  Rcpp::Rcout << "_polygon\n";
+
+  if (n < 2) return;
+  if (dd == NULL) return;
+  ML_Context *context = (ML_Context *)dd->deviceSpecific;
+  if (context == NULL) return;
+
+  std::vector<std::pair<double, double>> points;
+  for (int idx=0; idx<n; idx++)
+    points.push_back({x[idx], y[idx]});
+
+  context->objects.push_back(ML_Polygon(context->id++, points, gc));
 }
