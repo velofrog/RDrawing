@@ -10,8 +10,8 @@ std::string FontName(const pGEcontext gc) {
 }
 
 void TextBoundingRect(const pGEcontext gc, const std::string &text, ML_TextBounds &bounds) {
-  bounds.x = 0;
-  bounds.y = 0;
+  bounds.ascent = 0;
+  bounds.descent = 0;
   bounds.width = 12 * text.size();
   bounds.height = gc->ps;
 }
