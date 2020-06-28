@@ -5,16 +5,16 @@
 
 using namespace Rcpp;
 
-// OGDevice
-void OGDevice(double width, double height, double pointsize, std::string font);
-RcppExport SEXP _ROfficeGraphics_OGDevice(SEXP widthSEXP, SEXP heightSEXP, SEXP pointsizeSEXP, SEXP fontSEXP) {
+// OfficeGraphicDevice
+void OfficeGraphicDevice(double width, double height, double pointsize, std::string font);
+RcppExport SEXP _ROfficeGraphics_OfficeGraphicDevice(SEXP widthSEXP, SEXP heightSEXP, SEXP pointsizeSEXP, SEXP fontSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< double >::type width(widthSEXP);
     Rcpp::traits::input_parameter< double >::type height(heightSEXP);
     Rcpp::traits::input_parameter< double >::type pointsize(pointsizeSEXP);
     Rcpp::traits::input_parameter< std::string >::type font(fontSEXP);
-    OGDevice(width, height, pointsize, font);
+    OfficeGraphicDevice(width, height, pointsize, font);
     return R_NilValue;
 END_RCPP
 }
@@ -30,7 +30,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_ROfficeGraphics_OGDevice", (DL_FUNC) &_ROfficeGraphics_OGDevice, 4},
+    {"_ROfficeGraphics_OfficeGraphicDevice", (DL_FUNC) &_ROfficeGraphics_OfficeGraphicDevice, 4},
     {"_ROfficeGraphics_ZipAndSendToClipboard", (DL_FUNC) &_ROfficeGraphics_ZipAndSendToClipboard, 1},
     {NULL, NULL, 0}
 };

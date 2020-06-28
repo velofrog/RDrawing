@@ -81,6 +81,14 @@ struct ML_Attributes {
   ML_Attributes(const pGEcontext gc);
 };
 
+struct ML_Alignment {
+  double align;
+
+  ML_Alignment() : align(0.5) {}
+  ML_Alignment(double hjust) : align(hjust) {}
+  std::string str_alignment() const;
+};
+
 struct ML_Group;
 struct ML_Line;
 struct ML_Rect;
@@ -194,16 +202,19 @@ struct ML_Polygon : ML_BaseType {
 struct ML_Text : ML_BaseType {
   double x0, y0, x1, y1;
   std::string text;
+  ML_Alignment align;
   ML_Attributes attributes;
 
-  ML_Text(int id, double x0, double y0, double x1, double y1, std::string &text, ML_Attributes attributes) {
+  ML_Text(int id, double x0, double y0, double x1, double y1, std::string &text, ML_Alignment align, ML_Attributes attributes) {
     this->id = id;
     this->x0 = x0;
     this->y0 = y0;
     this->x1 = x1;
     this->y1 = y1;
     this->text = text;
+    this->align = align;
     this->attributes = attributes;
+
   }
   virtual std::vector<XMLNode> xml() const;
 };

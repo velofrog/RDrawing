@@ -23,6 +23,11 @@ NULL
 NULL
 
 #' @export
+OGDevice = function(width = 23.5 / 2.54, height = 14.5 / 2.54, pointsize = 10, font = "Arial") {
+  OfficeGraphicDevice(width, height, pointsize, font)
+}
+
+#' @export
 pt_emu = function(points) return(floor(points * 12700))
 #' @export
 cm_emu = function(cm) return(floor(cm * 360000))

@@ -10,8 +10,8 @@ const double DrawingML_FontHeightScalar = 277.0 / 90.0 / 2.54;
 
 //' @export
 // [[Rcpp::export]]
-void OGDevice(double width = 23.5 / 2.54, double height = 14.5 / 2.54,
-              double pointsize = 10, std::string font = "Arial") {
+void OfficeGraphicDevice(double width = 23.5 / 2.54, double height = 14.5 / 2.54,
+                         double pointsize = 10, std::string font = "Arial") {
 
   if (std::isnan(width) || (width <= 0)) width = 23.5 / 2.54;
   if (std::isnan(height) || (height <= 0)) height = 14.5 / 2.54;
@@ -122,6 +122,12 @@ std::string ML_Colour::str_rgb() const {
 
 std::string ML_Colour::str_alpha() const {
   return std::to_string(100000 * alpha / 255);
+}
+
+std::string ML_Alignment::str_alignment() const {
+  if (align <= 0.4) return "l";
+  if (align <= 0.6) return "ctr";
+  return "r";
 }
 
 std::string ML_LineType_str(ML_LineType lty) {
@@ -236,7 +242,6 @@ XMLNode XML_xfrm_rect(double x1, double y1, double x2, double y2) {
 }
 
 XMLNode XML_xfrm_rect(double x1, double y1, double x2, double y2, double rotate) {
-  Rcpp::Rcout << "_[rotate=" << rotate << ". str='" << std::to_string(static_cast<int>(-60000.0*rotate)) << "']\n";
   std::vector<std::pair<std::string, std::string>> attr;
   if (x2 < x1) attr.push_back({"flipH","1"});
   if (y2 < y1) attr.push_back({"flipV","1"});
@@ -445,7 +450,7 @@ std::vector<XMLNode> ML_Text::xml() const {
                   XMLNode("a:spAutoFit"),
                 XMLNode("a:p") <<
                   XMLNodes({
-                    XMLNode("a:pPr", {{"algn","ctr"}}),
+                    XMLNode("a:pPr", {{"algn",align.str_alignment()}}),
                     XMLNode("a:r") <<
                       XMLNodes({
                         XMLNode("a:rPr", {{"sz",std::to_string(static_cast<int>(100.0 * attributes.pointSize))},
@@ -626,7 +631,6 @@ void DrawingMLDevice_text(double x, double y, const char *str, double rot, doubl
   TextBoundingRect(gc, str, bounds);
   if (bounds.empty()) return;
   bounds.height *= DrawingML_FontHeightScalar;
-  bounds.width *= DrawingML_FontHeightScalar;
 
   ML_Context *context = (ML_Context *)dd->deviceSpecific;
   if (context == NULL) return;
@@ -650,6 +654,6 @@ void DrawingMLDevice_text(double x, double y, const char *str, double rot, doubl
   std::string text(str);
 
   context->objects.push_back(ML_Text(context->id++, tx, ty, tx + bounds.width, ty + bounds.height,
-                                     text, attributes));
+                                     text, hadj, attributes));
 
 }
