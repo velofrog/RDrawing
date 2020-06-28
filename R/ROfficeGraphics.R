@@ -1,4 +1,4 @@
-#' @useDynLib RDrawingML, .registration = TRUE
+#' @useDynLib ROfficeGraphics, .registration = TRUE
 #' @import Rcpp
 NULL
 
@@ -179,5 +179,5 @@ canvas_rect = function(canvas, id, name = "", x = 0, y = 0, cx = cm_emu(1), cy =
 }
 
 .onUnload = function(libpath) {
-  library.dynam.unload("RDrawingML", libpath)
+  library.dynam.unload("ROfficeGraphics", libpath)
 }
