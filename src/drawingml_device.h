@@ -16,11 +16,13 @@ struct emu {
   }
 };
 
-struct ML_Bounds {
-  double x;
-  double y;
+struct ML_TextBounds {
   double width;
   double height;
+  double ascent;
+  double descent;
+
+  bool empty() { return ((width == 0) || (height == 0));}
 };
 
 struct ML_Colour {
@@ -85,8 +87,9 @@ struct ML_Rect;
 struct ML_Circle;
 struct ML_Polyline;
 struct ML_Polygon;
+struct ML_Text;
 
-using ML_Geom = std::variant<ML_Group, ML_Line, ML_Rect, ML_Circle, ML_Polyline, ML_Polygon>;
+using ML_Geom = std::variant<ML_Group, ML_Line, ML_Rect, ML_Circle, ML_Polyline, ML_Polygon, ML_Text>;
 
 struct ML_BaseType {
   int id;
@@ -188,6 +191,24 @@ struct ML_Polygon : ML_BaseType {
   virtual std::vector<XMLNode> xml() const;
 };
 
+struct ML_Text : ML_BaseType {
+  double x0, y0, x1, y1;
+  std::string text;
+  ML_Attributes attributes;
+
+  ML_Text(int id, double x0, double y0, double x1, double y1, std::string &text, ML_Attributes attributes) {
+    this->id = id;
+    this->x0 = x0;
+    this->y0 = y0;
+    this->x1 = x1;
+    this->y1 = y1;
+    this->text = text;
+    this->attributes = attributes;
+  }
+  virtual std::vector<XMLNode> xml() const;
+};
+
+
 struct ML_Context {
   int id;
   double canvasWidth;
@@ -212,10 +233,10 @@ void DrawingMLDevice_size(double *left, double *right, double *top, double *bott
 void DrawingMLDevice_metricInfo(int c, const pGEcontext gc, double *ascent, double *descent, double *width, pDevDesc dd);
 double DrawingMLDevice_strWidth(const char *str, const pGEcontext gc, pDevDesc pp);
 void DrawingMLDevice_raster(unsigned int *raster, int w, int h, double x, double y, double width, double height, double rot, Rboolean interpolate, const pGEcontext gc, pDevDesc dd);
-void DrawingMLDevice_path(double *x, double *y, int nploy, int *nper, Rboolean winding, const pGEcontext gc, pDevDesc dd);
 void DrawingMLDevice_rect(double x0, double y0, double x1, double y1, const pGEcontext gc, pDevDesc dd);
 void DrawingMLDevice_line(double x1, double y1, double x2, double y2, const pGEcontext gc, pDevDesc dd);
 void DrawingMLDevice_circle(double x, double y, double r, const pGEcontext gc, pDevDesc dd);
 void DrawingMLDevice_polyline(int n, double *x, double *y, const pGEcontext gc, pDevDesc dd);
 void DrawingMLDevice_polygon(int n, double *x, double *y, const pGEcontext gc, pDevDesc dd);
+void DrawingMLDevice_text(double x, double y, const char *str, double rot, double hadj, const pGEcontext gc, pDevDesc dd);
 

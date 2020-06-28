@@ -5,13 +5,47 @@ XMLNode::XMLNode(const std::string& name) {
   this->name = name;
 }
 
+XMLNode::XMLNode(const std::string& name, const std::string& text) {
+  this->name = name;
+  this->text = text;
+}
+
 XMLNode::XMLNode(const std::string& name, const std::vector<std::pair<std::string, std::string>>& attributes) {
   this->name = name;
   this->attributes = attributes;
 }
 
+XMLNode::XMLNode(const std::string& name, const std::vector<std::pair<std::string, std::string>>& attributes,
+                 const std::string& text) {
+  this->name = name;
+  this->attributes = attributes;
+  this->text = text;
+}
+
 bool XMLNode::empty() const {
   return name.empty();
+}
+
+std::string XMLNode::XMLText(const std::string& str) {
+  std::string result;
+
+  if (str.size() == 0) return result;
+  for (const char& c : str) {
+    if (c == '<')
+      result += "&lt;";
+    else if (c == '>')
+      result += "&gt;";
+    else if (c == '&')
+      result += "&amp;";
+    else if ((c < 32) || (c > 127)) {
+      result += "&#";
+      result += std::to_string(static_cast<int>(c));
+      result += ";";
+    } else
+      result.push_back(c);
+  }
+
+  return result;
 }
 
 std::string XMLNode::write() const {
@@ -28,9 +62,18 @@ std::string XMLNode::write() const {
       for (const auto& node : nodes)
         out << node.write();
 
+      if (text.size() > 0) out << XMLText(text);
+
       out << "</" << name << ">";
     } else {
-      out << "/>";
+
+      if (text.size() > 0) {
+        out << ">";
+        out << XMLText(text);
+        out << "</" << name << ">";
+      } else {
+        out << "/>";
+      }
     }
   }
 

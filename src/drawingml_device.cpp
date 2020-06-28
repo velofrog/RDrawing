@@ -6,6 +6,8 @@
 #include "platform_specific.h"
 #include "zip_container.h"
 
+const double DrawingML_FontHeightScalar = 277.0 / 90.0 / 2.54;
+
 //' @export
 // [[Rcpp::export]]
 void DrawingMLDevice(double width = 23.5 / 2.54, double height = 14.5 / 2.54,
@@ -56,12 +58,12 @@ void DrawingMLDevice(double width = 23.5 / 2.54, double height = 14.5 / 2.54,
     dev->startfont = 1;
     dev->displayListOn = FALSE; // Unsure. Seems screen's are true, others (png, pdf, etc) are false
 
-    dev->hasTextUTF8 = TRUE;
-    dev->wantSymbolUTF8 = TRUE;
+    //dev->hasTextUTF8 = TRUE;
+    //dev->wantSymbolUTF8 = TRUE;
     dev->canGenMouseDown = dev->canGenMouseMove = dev->canGenMouseUp = dev->canGenKeybd = FALSE;
     dev->haveTransparency = 2;
     dev->haveTransparentBg = 2;
-    dev->haveRaster = 2; // 2=>yes, but do we?
+    dev->haveRaster = 2; // 2=>yes, but unimplemented
     dev->haveCapture = dev->haveLocator = 1;
 
     // methods
@@ -78,7 +80,6 @@ void DrawingMLDevice(double width = 23.5 / 2.54, double height = 14.5 / 2.54,
     dev->metricInfo = DrawingMLDevice_metricInfo;
     dev->strWidth = DrawingMLDevice_strWidth;
 
-    dev->path = DrawingMLDevice_path;
     dev->raster = DrawingMLDevice_raster;
     dev->rect = DrawingMLDevice_rect;
     dev->line = DrawingMLDevice_line;
@@ -86,7 +87,7 @@ void DrawingMLDevice(double width = 23.5 / 2.54, double height = 14.5 / 2.54,
     dev->path = NULL;
     dev->polyline = DrawingMLDevice_polyline;
     dev->polygon = DrawingMLDevice_polygon;
-    // dev->text = DrawingMLDevice_text;
+    dev->text = DrawingMLDevice_text;
 
     dev->deviceSpecific = new ML_Context();
 
@@ -164,21 +165,24 @@ std::vector<XMLNode> ML_IterateOver(const std::vector<ML_Geom>& objects) {
 #ifdef __APPLE__
   // visit(...) is unavailable on default macOS target (macosx-version-min=10.13)
   // as std::visit can throw a bad_variant_access, which is only avaiable in macOS >= 10.14
+  // Hence this pretty awful switch
   for (const auto &object : objects) {
     ML_BaseType const* ptr = nullptr;
     switch (object.index()) { // object is a std::variant. Requires hardcoding number of underlying types
-    case 0:
-      ptr = std::get_if<0>(&object); break;
-    case 1:
-      ptr = std::get_if<1>(&object); break;
-    case 2:
-      ptr = std::get_if<2>(&object); break;
-    case 3:
-      ptr = std::get_if<3>(&object); break;
-    case 4:
-      ptr = std::get_if<4>(&object); break;
-    case 5:
-      ptr = std::get_if<5>(&object); break;
+      case 0:
+        ptr = std::get_if<0>(&object); break;
+      case 1:
+        ptr = std::get_if<1>(&object); break;
+      case 2:
+        ptr = std::get_if<2>(&object); break;
+      case 3:
+        ptr = std::get_if<3>(&object); break;
+      case 4:
+        ptr = std::get_if<4>(&object); break;
+      case 5:
+        ptr = std::get_if<5>(&object); break;
+      case 6:
+        ptr = std::get_if<6>(&object); break;
     }
 
     if (ptr != nullptr) {
@@ -223,6 +227,20 @@ XMLNode XML_xfrm_rect(double x1, double y1, double x2, double y2) {
   std::vector<std::pair<std::string, std::string>> attr;
   if (x2 < x1) attr.push_back({"flipH","1"});
   if (y2 < y1) attr.push_back({"flipV","1"});
+
+  XMLNode node("a:xfrm", attr);
+  node << XMLNode("a:off", {{"x",emu::str(std::min(x1, x2))},{"y",emu::str(std::min(y1, y2))}});
+  node << XMLNode("a:ext", {{"cx",emu::str(std::abs(x2-x1))},{"cy",emu::str(std::abs(y2-y1))}});
+
+  return node;
+}
+
+XMLNode XML_xfrm_rect(double x1, double y1, double x2, double y2, double rotate) {
+  Rcpp::Rcout << "_[rotate=" << rotate << ". str='" << std::to_string(static_cast<int>(-60000.0*rotate)) << "']\n";
+  std::vector<std::pair<std::string, std::string>> attr;
+  if (x2 < x1) attr.push_back({"flipH","1"});
+  if (y2 < y1) attr.push_back({"flipV","1"});
+  attr.push_back({"rot",std::to_string(static_cast<int>(-60000.0 * rotate))});
 
   XMLNode node("a:xfrm", attr);
   node << XMLNode("a:off", {{"x",emu::str(std::min(x1, x2))},{"y",emu::str(std::min(y1, y2))}});
@@ -402,6 +420,52 @@ std::vector<XMLNode> ML_Polygon::xml() const {
     };
 }
 
+std::vector<XMLNode> ML_Text::xml() const {
+  return {
+    XMLNode("a:sp") <<
+      XMLNodes({
+        (
+          XMLNode("a:nvSpPr") <<
+            XMLNode("a:cNvPr", {{"id",std::to_string(id)},{"name",name}}) <<
+            XMLNode("a:cNvSpPr", {{"txBox","1"}})
+        ),
+        XMLNode("a:spPr") <<
+          XMLNodes({
+            XML_xfrm_rect(x0, y0, x1, y1, attributes.rotation),
+            XMLNode("a:prstGeom", {{"prst","rect"}}),
+            XMLNode("a:noFill")
+          }),
+        XMLNode("a:txSp") <<
+          XMLNodes({
+            XMLNode("a:txBody") <<
+              XMLNodes({
+                XMLNode("a:bodyPr", {{"wrap","none"},{"lIns","0"},{"tIns","0"},
+                                     {"rIns","0"},{"bIns","0"},{"anchor","b"},
+                                     {"anchorCtr","1"}}) <<
+                  XMLNode("a:spAutoFit"),
+                XMLNode("a:p") <<
+                  XMLNodes({
+                    XMLNode("a:pPr", {{"algn","ctr"}}),
+                    XMLNode("a:r") <<
+                      XMLNodes({
+                        XMLNode("a:rPr", {{"sz",std::to_string(static_cast<int>(100.0 * attributes.pointSize))},
+                                          {"b",(attributes.bold ? "1" : "0")},{"i",(attributes.italic ? "1":"0")},
+                                          {"dirty","0"}}) <<
+                          XMLNodes({
+                            XML_solidFill(attributes.lineColour), // use colour, not fill colour for text
+                            XMLNode("a:latin", {{"typeface",attributes.font}}),
+                            XMLNode("a:cs", {{"typeface",attributes.font}})
+                          }),
+                        XMLNode("a:t", text)
+                      }) // a:r
+                  }) // a:p
+              }),  // a:txBody
+            XMLNode("a:useSpRect")
+          }) // a:txSp
+      }) // a:sp
+    };
+}
+
 
 void DrawingMLDevice_activate(pDevDesc) {
 }
@@ -411,12 +475,9 @@ Rboolean DrawingMLDevice_newFrameConfirm(pDevDesc) {
 }
 
 void DrawingMLDevice_onExit(pDevDesc) {
-  Rcpp::Rcout << "_onExit\n";
 }
 
 void DrawingMLDevice_close(pDevDesc dd) {
-  Rcpp::Rcout << "_close\n";
-
   if (dd == NULL) return;
   ML_Context *context = (ML_Context *)dd->deviceSpecific;
   if (context == NULL) return;
@@ -424,8 +485,6 @@ void DrawingMLDevice_close(pDevDesc dd) {
   std::vector<ML_Geom> canvas;
   canvas.push_back(ML_Group(0, context->canvasWidth, context->canvasHeight, "Canvas"));
   canvas.push_back(ML_Group(1, 0, 0, context->canvasWidth, context->canvasHeight, "MainGroup", context->objects));
-
-  Rcpp::Rcout << MLContainer_Drawing(canvas);
 
   try {
     ZipAndSendToClipboard(
@@ -455,12 +514,10 @@ void DrawingMLDevice_clip(double x0, double x1, double y0, double y1, pDevDesc d
 }
 
 SEXP DrawingMLDevice_cap(pDevDesc dd) {
-  Rcpp::Rcout << "_cap\n";
   return R_NilValue;
 }
 
 void DrawingMLDevice_size(double *left, double *right, double *top, double *bottom, pDevDesc dd) {
-  Rcpp::Rcout << "_size (" << dd->left << ", " << dd->top << ". " << dd->right << ", " << dd->bottom << ")\n";
   *left = dd->left;
   *right = dd->right;
   *top = dd->top;
@@ -468,7 +525,6 @@ void DrawingMLDevice_size(double *left, double *right, double *top, double *bott
 }
 
 void DrawingMLDevice_newPage(const pGEcontext gc, pDevDesc dd) {
-  Rcpp::Rcout << "_newPage (" << dd->right << ", " << dd->bottom << ")\n";
   if (dd == NULL) return;
   ML_Context *context = (ML_Context *)dd->deviceSpecific;
   if (context == NULL) return;
@@ -477,34 +533,26 @@ void DrawingMLDevice_newPage(const pGEcontext gc, pDevDesc dd) {
 }
 
 void DrawingMLDevice_metricInfo(int c, const pGEcontext gc, double *ascent, double *descent, double *width, pDevDesc dd) {
-  Rcpp::Rcout << "_metricInfo(c: " << c << ")\n";
   *ascent = *descent = *width = 0.0;
   if (gc == NULL) return;
 
   std::string str;
+  if (c < 0) c = -c;
+  str.push_back(c);
 
-  if (c >= 0 && c <= ((mbcslocale && gc->fontface != 5) ? 127 : 255)) {
-    str.assign(1, (char)c);
-  } else {
-    if (c < 0) c = -c;
-    str.assign(1, (char)c);
-  }
-
-  ML_Bounds bounds;
+  ML_TextBounds bounds;
   TextBoundingRect(gc, str, bounds);
 
-  *descent = -bounds.y;
-  *ascent = bounds.height + bounds.y;
+  *descent = -bounds.descent * DrawingML_FontHeightScalar;
+  *ascent = bounds.ascent;
   *width = bounds.width;
 }
 
 double DrawingMLDevice_strWidth(const char *str, const pGEcontext gc, pDevDesc pp) {
-  Rcpp::Rcout << "_strWidth\n";
-
   if (str == NULL) return 0;
   if (strlen(str) == 0) return 0;
 
-  ML_Bounds bounds;
+  ML_TextBounds bounds;
   TextBoundingRect(gc, str, bounds);
 
   return bounds.width;
@@ -514,13 +562,7 @@ void DrawingMLDevice_raster(unsigned int *raster, int w, int h, double x, double
   throw Rcpp::exception("Raster operation not supported");
 }
 
-void DrawingMLDevice_path(double *x, double *y, int nploy, int *nper, Rboolean winding, const pGEcontext gc, pDevDesc dd) {
-  throw Rcpp::exception("Path operation not supported");
-}
-
 void DrawingMLDevice_rect(double x0, double y0, double x1, double y1, const pGEcontext gc, pDevDesc dd) {
-  Rcpp::Rcout << "_rect\n";
-
   if (dd == NULL) return;
   ML_Context *context = (ML_Context *)dd->deviceSpecific;
   if (context == NULL) return;
@@ -529,8 +571,6 @@ void DrawingMLDevice_rect(double x0, double y0, double x1, double y1, const pGEc
 }
 
 void DrawingMLDevice_line(double x1, double y1, double x2, double y2, const pGEcontext gc, pDevDesc dd) {
-  Rcpp::Rcout << "_line\n";
-
   if (dd == NULL) return;
   ML_Context *context = (ML_Context *)dd->deviceSpecific;
   if (context == NULL) return;
@@ -539,8 +579,6 @@ void DrawingMLDevice_line(double x1, double y1, double x2, double y2, const pGEc
 }
 
 void DrawingMLDevice_circle(double x, double y, double r, const pGEcontext gc, pDevDesc dd) {
-  Rcpp::Rcout << "_circle\n";
-
   if (dd == NULL) return;
   ML_Context *context = (ML_Context *)dd->deviceSpecific;
   if (context == NULL) return;
@@ -549,8 +587,6 @@ void DrawingMLDevice_circle(double x, double y, double r, const pGEcontext gc, p
 }
 
 void DrawingMLDevice_polyline(int n, double *x, double *y, const pGEcontext gc, pDevDesc dd) {
-  Rcpp::Rcout << "_polyline\n";
-
   if (n < 2) return;
   if (dd == NULL) return;
   ML_Context *context = (ML_Context *)dd->deviceSpecific;
@@ -564,8 +600,6 @@ void DrawingMLDevice_polyline(int n, double *x, double *y, const pGEcontext gc, 
 }
 
 void DrawingMLDevice_polygon(int n, double *x, double *y, const pGEcontext gc, pDevDesc dd) {
-  Rcpp::Rcout << "_polygon\n";
-
   if (n < 2) return;
   if (dd == NULL) return;
   ML_Context *context = (ML_Context *)dd->deviceSpecific;
@@ -576,4 +610,46 @@ void DrawingMLDevice_polygon(int n, double *x, double *y, const pGEcontext gc, p
     points.push_back({x[idx], y[idx]});
 
   context->objects.push_back(ML_Polygon(context->id++, points, gc));
+}
+
+void DrawingMLDevice_text(double x, double y, const char *str, double rot, double hadj, const pGEcontext gc, pDevDesc dd) {
+  if (str == NULL) return;
+  if (strlen(str) == 0) return;
+  if (gc == NULL) return;
+  if ((gc->ps * gc->cex) < 0.5) {
+    // DrawingML doesn't appear to handle very small text
+    Rcpp::Rcerr << "Text too small (pointsize: " << gc->ps * gc->cex << ")\n";
+    return;
+  }
+
+  ML_TextBounds bounds;
+  TextBoundingRect(gc, str, bounds);
+  if (bounds.empty()) return;
+  bounds.height *= DrawingML_FontHeightScalar;
+  bounds.width *= DrawingML_FontHeightScalar;
+
+  ML_Context *context = (ML_Context *)dd->deviceSpecific;
+  if (context == NULL) return;
+  ML_Attributes attributes(gc);
+  attributes.rotation = rot;
+  attributes.hAdjustment = 0; // We'll incorporate adjustment into the bounding rect
+
+  // Adjust y for font descent
+  y = y - bounds.descent * DrawingML_FontHeightScalar;
+  // DrawingML gets a unrotated bounding rect and the angle of rotation
+  double d = bounds.width * hadj;
+  double rotateAngle = rot * M_PI / 180.0f;
+  double diagAngle = atan2((0.5*bounds.height), (0.5*bounds.width - d));
+  double hyp = sqrt(std::pow(0.5*bounds.height, 2) + std::pow(0.5*bounds.width-d, 2));
+  double cx = cos(rotateAngle + diagAngle) * hyp;
+  double cy = -sin(rotateAngle + diagAngle) * hyp;
+
+  double tx = x + cx - 0.5*bounds.width;    // top left point of unrotated rect
+  double ty = y + cy - 0.5*bounds.height;   //
+
+  std::string text(str);
+
+  context->objects.push_back(ML_Text(context->id++, tx, ty, tx + bounds.width, ty + bounds.height,
+                                     text, attributes));
+
 }

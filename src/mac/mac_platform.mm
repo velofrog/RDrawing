@@ -50,8 +50,8 @@ CTFontRef CreateFont(const pGEcontext gc) {
   return font;
 }
 
-void TextBoundingRect(const pGEcontext gc, const std::string &text, ML_Bounds &bounds) {
-  bounds.x = bounds.y = bounds.width = bounds.height = 0;
+void TextBoundingRect(const pGEcontext gc, const std::string &text, ML_TextBounds &bounds) {
+  bounds.ascent = bounds.descent = bounds.width = bounds.height = 0;
 
   if (text.empty()) return;
 
@@ -68,6 +68,12 @@ void TextBoundingRect(const pGEcontext gc, const std::string &text, ML_Bounds &b
   }
 
   CFIndex length = CFStringGetLength(cf_text);
+  if (length <= 0) {
+    CFRelease(font);
+    CFRelease(cf_text);
+    return;
+  }
+
   UniChar *characters = (UniChar *)malloc(sizeof(UniChar) * length);
   if (characters == NULL) {
     Rcpp::Rcerr << "Memory allocation failed in TextBoundingRect\n";
@@ -79,17 +85,7 @@ void TextBoundingRect(const pGEcontext gc, const std::string &text, ML_Bounds &b
   CGGlyph *glyphs = (CGGlyph *)malloc(sizeof(CGGlyph) * length);
   if (glyphs == NULL) {
     Rcpp::Rcerr << "Memory allocation failed in TextBoundingRect\n";
-    CFRelease(characters);
-    CFRelease(font);
-    CFRelease(cf_text);
-    return;
-  }
-
-  int *advances = (int *)malloc(sizeof(int) * length);
-  if (advances == NULL) {
-    Rcpp::Rcerr << "Memory allocation failed in TextBoundingRect\n";
-    CFRelease(glyphs);
-    CFRelease(characters);
+    free(characters);
     CFRelease(font);
     CFRelease(cf_text);
     return;
@@ -99,12 +95,11 @@ void TextBoundingRect(const pGEcontext gc, const std::string &text, ML_Bounds &b
   CTFontGetGlyphsForCharacters(font, characters, glyphs, length);
   double totalAdvances = CTFontGetAdvancesForGlyphs(font, kCTFontOrientationDefault, glyphs, NULL, length);
 
-  bounds.x = 0;
-  bounds.y = -CTFontGetDescent(font);
+  bounds.ascent = CTFontGetAscent(font);
+  bounds.descent = -CTFontGetDescent(font);
   bounds.width = totalAdvances;
-  bounds.height = CTFontGetDescent(font) + CTFontGetAscent(font);
+  bounds.height = bounds.ascent - bounds.descent;
 
-  free(advances);
   free(glyphs);
   free(characters);
   CFRelease(font);

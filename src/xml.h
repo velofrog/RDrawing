@@ -6,15 +6,19 @@ class XMLNode;
 
 class XMLNode {
   std::string name;
+  std::string text;
   std::vector<std::pair<std::string, std::string>> attributes;
   std::vector<XMLNode> nodes;
 
 public:
   XMLNode() = default;
   XMLNode(const std::string& name);
+  XMLNode(const std::string& name, const std::string& text);
   XMLNode(const std::string& name, const std::vector<std::pair<std::string, std::string>>& attributes);
+  XMLNode(const std::string& name, const std::vector<std::pair<std::string, std::string>>& attributes, const std::string& text);
   std::string write() const;
   bool empty() const;
+  static std::string XMLText(const std::string& str);
 
   friend XMLNode& operator<<(XMLNode&& parent, const XMLNode& child) {
     parent.nodes.push_back(child);

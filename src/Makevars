@@ -1,5 +1,5 @@
 ## Makevars for unix and mac platforms
-## configure replaces occurances of unix with either mac or unix depending on build platform
+## configure replaces occurances of mac with either mac or unix depending on build platform
 
 ## mac specific sources and libraries
 	mac_libs = -lobjc
@@ -11,11 +11,11 @@
 	unix_source_mm =
 ##
 
-PKG_LIBS += $(unix_libs)
+PKG_LIBS += $(mac_libs)
 CXX_STD = CXX17
 OBJCXXFLAGS += $(CXX17STD)
 
-SOURCES_CPP = RcppExports.cpp zip_container.cpp drawingml_device.cpp xml.cpp drawingml_xml.cpp $(unix_source_cpp)
-SOURCES_MM = $(unix_source_mm)
+SOURCES_CPP = RcppExports.cpp zip_container.cpp drawingml_device.cpp xml.cpp drawingml_xml.cpp $(mac_source_cpp)
+SOURCES_MM = $(mac_source_mm)
 OBJECTS = $(SOURCES_CPP:.cpp=.o) $(SOURCES_MM:.mm=.o)
 

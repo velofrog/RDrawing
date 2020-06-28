@@ -9,7 +9,7 @@ std::string FontName(const pGEcontext gc) {
     return "Arial";
 }
 
-void TextBoundingRect(const pGEcontext gc, const std::string &text, ML_Bounds &bounds) {
+void TextBoundingRect(const pGEcontext gc, const std::string &text, ML_TextBounds &bounds) {
   bounds.x = 0;
   bounds.y = 0;
   bounds.width = 12 * text.size();
