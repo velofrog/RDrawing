@@ -10,8 +10,8 @@ const double DrawingML_FontHeightScalar = 277.0 / 90.0 / 2.54;
 
 //' @export
 // [[Rcpp::export]]
-void DrawingMLDevice(double width = 23.5 / 2.54, double height = 14.5 / 2.54,
-                     double pointsize = 10, std::string font = "Arial") {
+void OGDevice(double width = 23.5 / 2.54, double height = 14.5 / 2.54,
+              double pointsize = 10, std::string font = "Arial") {
 
   if (std::isnan(width) || (width <= 0)) width = 23.5 / 2.54;
   if (std::isnan(height) || (height <= 0)) height = 14.5 / 2.54;
@@ -27,7 +27,7 @@ void DrawingMLDevice(double width = 23.5 / 2.54, double height = 14.5 / 2.54,
 
     dev = (pDevDesc) calloc(1, sizeof(DevDesc));
     if (dev == NULL) {
-      throw Rcpp::exception("DrawingMLDevice: Unable to allocation memory");
+      throw Rcpp::exception("OGDevice: Unable to allocation memory");
     }
 
     dev->left = dev->clipLeft = 0;
@@ -47,7 +47,7 @@ void DrawingMLDevice(double width = 23.5 / 2.54, double height = 14.5 / 2.54,
 
     dev->gamma = dev->startgamma = 1.0;
 
-    // RDrawingML can't clip, but if canClip is false then geom_text labels where x or y are Inf are not displayed
+    // ROfficeGraphics can't clip, but if canClip is false then geom_text labels where x or y are Inf are not displayed
     dev->canClip = TRUE;
     dev->canChangeGamma = FALSE;
     dev->canHAdj = 2; // Sometimes this is 1 (devWindows), some device drivers use 2 (devX11, devQuartz)
