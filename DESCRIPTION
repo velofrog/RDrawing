@@ -1,6 +1,6 @@
-Package: RDrawingML
+Package: ROfficeGraphics
 Type: Package
-Title: DrawingML Graphics Device Driver
+Title: Office Graphics Device Driver
 Version: 0.1.0
 Date: 2020-06-16
 Authors@R: 
@@ -8,10 +8,10 @@ Authors@R:
            family = "Allen",
            role = c("aut", "cre"),
            email = "michael@velofrog.com")
-Description: Graphics Device Driver, outputting a Microsoft Office Drawing Object to the clipboard
+Description: Graphics Device Driver for creating Microsoft Office Drawing Objects on the clipboard
 License: GPL-3
-URL: https://github.com/velofrog/RDrawingML
-BugReports: https://github.com/velofrog/RDrawingML/issues
+URL: https://github.com/velofrog/ROfficeGraphics
+BugReports: https://github.com/velofrog/ROfficeGraphics/issues
 Encoding: UTF-8
 LazyData: true
 Depends: R (>= 4.0)
