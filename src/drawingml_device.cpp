@@ -551,6 +551,8 @@ void DrawingMLDevice_metricInfo(int c, const pGEcontext gc, double *ascent, doub
   *descent = -bounds.descent * DrawingML_FontHeightScalar;
   *ascent = bounds.ascent;
   *width = bounds.width;
+  Rcpp::Rcout << "Metrics [Ascent: " << *ascent << "; Descent: " << *descent << "]. [Width: " << *width << "]\n";
+
 }
 
 double DrawingMLDevice_strWidth(const char *str, const pGEcontext gc, pDevDesc pp) {
@@ -630,6 +632,9 @@ void DrawingMLDevice_text(double x, double y, const char *str, double rot, doubl
   ML_TextBounds bounds;
   TextBoundingRect(gc, str, bounds);
   if (bounds.empty()) return;
+
+  Rcpp::Rcout << "TextBounds [Ascent: " << bounds.ascent << "; Descent: " << bounds.descent << "]. [Width: " << bounds.width << "; Height: " << bounds.height << "]\n";
+
   bounds.height *= DrawingML_FontHeightScalar;
 
   ML_Context *context = (ML_Context *)dd->deviceSpecific;
