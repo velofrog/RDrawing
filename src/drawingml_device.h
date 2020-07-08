@@ -9,20 +9,12 @@
 #include <map>
 #include <variant>
 #include "xml.h"
+#include "platform_specific.h"
 
 struct emu {
   static std::string str(double v) {
     return std::to_string(std::lround(v * 12700)); // 72 dots per inch, 914400 EMU => one inch
   }
-};
-
-struct ML_TextBounds {
-  double width;
-  double height;
-  double ascent;
-  double descent;
-
-  bool empty() { return ((width == 0) || (height == 0));}
 };
 
 struct ML_Colour {
@@ -78,7 +70,7 @@ struct ML_Attributes {
   std::string font;
 
   ML_Attributes() {};
-  ML_Attributes(const pGEcontext gc);
+  ML_Attributes(const PlatformDeviceDriver &platform, const pGEcontext gc);
 };
 
 struct ML_Alignment {
@@ -226,7 +218,9 @@ struct ML_Context {
   double canvasHeight;
 
   std::vector<ML_Geom> objects;
+  std::unique_ptr<PlatformDeviceDriver> platform;
 
+  ML_Context();
   void initialise(double width, double height);
 };
 

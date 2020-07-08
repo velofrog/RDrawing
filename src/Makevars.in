@@ -3,19 +3,22 @@
 
 ## mac specific sources and libraries
 	mac_libs = -lobjc
+	mac_cxxflags = 
 	mac_source_cpp =
 	mac_source_mm = mac/mac_clipboard.mm mac/mac_platform.mm
 ## unix specific sources and libraries
-	unix_libs =
+	unix_libs = `pkg-config --libs freetype2 fontconfig`
+	unix_cxxflags = `pkg-config --cflags freetype2 fontconfig`
 	unix_source_cpp = unix/unix_clipboard.cpp unix/unix_platform.cpp
 	unix_source_mm =
 ##
 
 PKG_LIBS += $(@sys@_libs)
+PKG_CXXFLAGS += $(@sys@_cxxflags)
 CXX_STD = CXX17
 OBJCXXFLAGS += $(CXX17STD)
 
-SOURCES_CPP = RcppExports.cpp zip_container.cpp drawingml_device.cpp xml.cpp drawingml_xml.cpp $(@sys@_source_cpp)
+SOURCES_CPP = RcppExports.cpp zip_container.cpp platform_specific.cpp drawingml_device.cpp xml.cpp drawingml_xml.cpp $(@sys@_source_cpp)
 SOURCES_MM = $(@sys@_source_mm)
 OBJECTS = $(SOURCES_CPP:.cpp=.o) $(SOURCES_MM:.mm=.o)
 

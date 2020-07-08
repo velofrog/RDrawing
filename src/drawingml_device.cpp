@@ -3,7 +3,6 @@
 #include <algorithm>
 #include "drawingml_device.h"
 #include "drawingml_xml.h"
-#include "platform_specific.h"
 #include "zip_container.h"
 
 const double DrawingML_FontHeightScalar = 277.0 / 90.0 / 2.54;
@@ -92,7 +91,7 @@ void OfficeGraphicDevice(double width = 23.5 / 2.54, double height = 14.5 / 2.54
     dev->deviceSpecific = new ML_Context();
 
     gdd = GEcreateDevDesc(dev);
-    GEaddDevice2(gdd, "DrawingMLDevice");
+    GEaddDevice2(gdd, "OfficeGraphicsDevice");
   } END_SUSPEND_INTERRUPTS;
 }
 
@@ -144,18 +143,24 @@ std::string ML_LineType_str(ML_LineType lty) {
   return "solid";
 }
 
-ML_Attributes::ML_Attributes(const pGEcontext gc) {
-  lineColour = gc->col;
-  fillColour = gc->fill;
-  lineWidth = gc->lwd;
-  lineType = static_cast<ML_LineType>(gc->lty);
-  lineEnd = static_cast<ML_LineEnd>(gc->lend);
-  lineJoin = static_cast<ML_LineJoin>(gc->ljoin);
-  lineMitre = gc->lmitre;
-  pointSize = gc->ps * gc->cex;
-  bold = gc->fontface == 2 || gc->fontface == 4;
-  italic = gc->fontface == 3 || gc->fontface == 4;
-  font = FontFamilyName(gc);
+ML_Attributes::ML_Attributes(const PlatformDeviceDriver &platform, const pGEcontext gc) {
+  if (gc) {
+    lineColour = gc->col;
+    fillColour = gc->fill;
+    lineWidth = gc->lwd;
+    lineType = static_cast<ML_LineType>(gc->lty);
+    lineEnd = static_cast<ML_LineEnd>(gc->lend);
+    lineJoin = static_cast<ML_LineJoin>(gc->ljoin);
+    lineMitre = gc->lmitre;
+    pointSize = gc->ps * gc->cex;
+    bold = gc->fontface == 2 || gc->fontface == 4;
+    italic = gc->fontface == 3 || gc->fontface == 4;
+    font = platform.PlatformFontFamily(gc);
+  }
+}
+
+ML_Context::ML_Context() {
+  platform = NewPlatformDeviceDriver();
 }
 
 void ML_Context::initialise(double width, double height) {
@@ -546,7 +551,10 @@ void DrawingMLDevice_metricInfo(int c, const pGEcontext gc, double *ascent, doub
   str.push_back(c);
 
   ML_TextBounds bounds;
-  TextBoundingRect(gc, str, bounds);
+  ML_Context *context = (ML_Context *)dd->deviceSpecific;
+  if (context == NULL) return;
+  if (context->platform == nullptr) return;
+  context->platform->TextBoundingRect(gc, str, false, bounds);
 
   *descent = -bounds.descent * DrawingML_FontHeightScalar;
   *ascent = bounds.ascent;
@@ -555,12 +563,16 @@ void DrawingMLDevice_metricInfo(int c, const pGEcontext gc, double *ascent, doub
 
 }
 
-double DrawingMLDevice_strWidth(const char *str, const pGEcontext gc, pDevDesc pp) {
+double DrawingMLDevice_strWidth(const char *str, const pGEcontext gc, pDevDesc dd) {
   if (str == NULL) return 0;
   if (strlen(str) == 0) return 0;
 
   ML_TextBounds bounds;
-  TextBoundingRect(gc, str, bounds);
+  ML_Context *context = (ML_Context *)dd->deviceSpecific;
+  if (context == NULL) return 0;
+  if (context->platform == nullptr) return 0;
+
+  context->platform->TextBoundingRect(gc, str, false, bounds);
 
   return bounds.width;
 }
@@ -573,24 +585,27 @@ void DrawingMLDevice_rect(double x0, double y0, double x1, double y1, const pGEc
   if (dd == NULL) return;
   ML_Context *context = (ML_Context *)dd->deviceSpecific;
   if (context == NULL) return;
+  if (context->platform == nullptr) return;
 
-  context->objects.push_back(ML_Rect(context->id++, x0, y0, x1, y1, gc));
+  context->objects.push_back(ML_Rect(context->id++, x0, y0, x1, y1, {*context->platform, gc}));
 }
 
 void DrawingMLDevice_line(double x1, double y1, double x2, double y2, const pGEcontext gc, pDevDesc dd) {
   if (dd == NULL) return;
   ML_Context *context = (ML_Context *)dd->deviceSpecific;
   if (context == NULL) return;
+  if (context->platform == nullptr) return;
 
-  context->objects.push_back(ML_Line(context->id++, x1, y1, x2, y2, gc));
+  context->objects.push_back(ML_Line(context->id++, x1, y1, x2, y2, {*context->platform, gc}));
 }
 
 void DrawingMLDevice_circle(double x, double y, double r, const pGEcontext gc, pDevDesc dd) {
   if (dd == NULL) return;
   ML_Context *context = (ML_Context *)dd->deviceSpecific;
   if (context == NULL) return;
+  if (context->platform == nullptr) return;
 
-  context->objects.push_back(ML_Circle(context->id++, x, y, r, gc));
+  context->objects.push_back(ML_Circle(context->id++, x, y, r, {*context->platform, gc}));
 }
 
 void DrawingMLDevice_polyline(int n, double *x, double *y, const pGEcontext gc, pDevDesc dd) {
@@ -598,12 +613,13 @@ void DrawingMLDevice_polyline(int n, double *x, double *y, const pGEcontext gc, 
   if (dd == NULL) return;
   ML_Context *context = (ML_Context *)dd->deviceSpecific;
   if (context == NULL) return;
+  if (context->platform == nullptr) return;
 
   std::vector<std::pair<double, double>> points;
   for (int idx=0; idx<n; idx++)
     points.push_back({x[idx], y[idx]});
 
-  context->objects.push_back(ML_Polyline(context->id++, points, gc));
+  context->objects.push_back(ML_Polyline(context->id++, points, {*context->platform, gc}));
 }
 
 void DrawingMLDevice_polygon(int n, double *x, double *y, const pGEcontext gc, pDevDesc dd) {
@@ -611,12 +627,13 @@ void DrawingMLDevice_polygon(int n, double *x, double *y, const pGEcontext gc, p
   if (dd == NULL) return;
   ML_Context *context = (ML_Context *)dd->deviceSpecific;
   if (context == NULL) return;
+  if (context->platform == nullptr) return;
 
   std::vector<std::pair<double, double>> points;
   for (int idx=0; idx<n; idx++)
     points.push_back({x[idx], y[idx]});
 
-  context->objects.push_back(ML_Polygon(context->id++, points, gc));
+  context->objects.push_back(ML_Polygon(context->id++, points, {*context->platform, gc}));
 }
 
 void DrawingMLDevice_text(double x, double y, const char *str, double rot, double hadj, const pGEcontext gc, pDevDesc dd) {
@@ -629,17 +646,20 @@ void DrawingMLDevice_text(double x, double y, const char *str, double rot, doubl
     return;
   }
 
+  ML_Context *context = (ML_Context *)dd->deviceSpecific;
+  if (context == NULL) return;
+  if (context->platform == nullptr) return;
+
   ML_TextBounds bounds;
-  TextBoundingRect(gc, str, bounds);
+  context->platform->TextBoundingRect(gc, str, false, bounds);
+
   if (bounds.empty()) return;
 
   Rcpp::Rcout << "TextBounds [Ascent: " << bounds.ascent << "; Descent: " << bounds.descent << "]. [Width: " << bounds.width << "; Height: " << bounds.height << "]\n";
 
   bounds.height *= DrawingML_FontHeightScalar;
 
-  ML_Context *context = (ML_Context *)dd->deviceSpecific;
-  if (context == NULL) return;
-  ML_Attributes attributes(gc);
+  ML_Attributes attributes(*context->platform, gc);
   attributes.rotation = rot;
   attributes.hAdjustment = 0; // We'll incorporate adjustment into the bounding rect
 
