@@ -560,7 +560,6 @@ void DrawingMLDevice_metricInfo(int c, const pGEcontext gc, double *ascent, doub
   *ascent = bounds.ascent;
   *width = bounds.width;
   Rcpp::Rcout << "Metrics [Ascent: " << *ascent << "; Descent: " << *descent << "]. [Width: " << *width << "]\n";
-
 }
 
 double DrawingMLDevice_strWidth(const char *str, const pGEcontext gc, pDevDesc dd) {
@@ -677,8 +676,8 @@ void DrawingMLDevice_text(double x, double y, const char *str, double rot, doubl
   double ty = y + cy - 0.5*bounds.height;   //
 
   std::string text(str);
+  text = context->platform->toUTF(str)
 
   context->objects.push_back(ML_Text(context->id++, tx, ty, tx + bounds.width, ty + bounds.height,
                                      text, hadj, attributes));
-
 }

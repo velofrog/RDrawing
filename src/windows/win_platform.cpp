@@ -12,10 +12,11 @@ public:
   WindowsDeviceDriver();
   virtual ~WindowsDeviceDriver();
 
+  virtual std::string toUTF8(std::string& platform_string);
   virtual std::string PlatformFontFamily(const pGEcontext gc) const;
-  virtual bool PlatformTextBoundingRect(const std::string &family, const bool bold, const bool italic, const double pointsize,
-                                        const std::string &text, bool UTF8,
-                                        ML_TextBounds &bounds);
+  virtual bool PlatformTextBoundingRect(const std::string& family, const bool bold, const bool italic, const double pointsize,
+                                        const std::string& text, bool UTF8,
+                                        ML_TextBounds& bounds);
 private:
   HFONT CreateWindowsFont(const std::string &family, const bool bold, const bool italic, int pixelHeight);
 
@@ -29,6 +30,15 @@ WindowsDeviceDriver::WindowsDeviceDriver() {
 }
 
 WindowsDeviceDriver::~WindowsDeviceDriver() {
+}
+
+std::string WindowsDeviceDriver::toUTF8(std::string& platform_string) {
+  std::wstring wstr;
+  std::string dest;
+
+  AnsiToWideChar(platform_string, wstr);
+  WideCharToUTF8(wstr, dest);
+  return dest;
 }
 
 std::string WindowsDeviceDriver::PlatformFontFamily(const pGEcontext gc) const {
@@ -49,7 +59,7 @@ std::string WindowsDeviceDriver::PlatformFontFamily(const pGEcontext gc) const {
   return gc->fontfamily;
 }
 
-HFONT WindowsDeviceDriver::CreateWindowsFont(const std::string &family, const bool bold, const bool italic, int pixelHeight) {
+HFONT WindowsDeviceDriver::CreateWindowsFont(const std::string& family, const bool bold, const bool italic, int pixelHeight) {
   HFONT hFont;
   hFont = CreateFontA(-pixelHeight, 0, 0, 0,
                       (bold ? FW_BOLD : FW_REGULAR), (italic ? 1 : 0),
@@ -70,8 +80,8 @@ HFONT WindowsDeviceDriver::CreateWindowsFont(const std::string &family, const bo
   return hFont;
 }
 
-bool WindowsDeviceDriver::PlatformTextBoundingRect(const std::string &family, const bool bold, const bool italic, const double pointsize,
-                                                   const std::string &text, const bool UTF8, ML_TextBounds &bounds) {
+bool WindowsDeviceDriver::PlatformTextBoundingRect(const std::string& family, const bool bold, const bool italic, const double pointsize,
+                                                   const std::string& text, const bool UTF8, ML_TextBounds& bounds) {
 
   bounds.ascent = bounds.descent = bounds.width = bounds.height = 0;
   if (text.empty()) return true;

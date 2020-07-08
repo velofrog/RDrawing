@@ -30,11 +30,11 @@ struct UnixDeviceDriver: PlatformDeviceDriver {
   virtual ~UnixDeviceDriver();
 
   virtual std::string PlatformFontFamily(const pGEcontext gc) const;
-  virtual bool PlatformTextBoundingRect(const std::string &family, const bool bold, const bool italic, const double pointsize,
-                                        const std::string &text, bool UTF8,
-                                        ML_TextBounds &bounds);
+  virtual bool PlatformTextBoundingRect(const std::string& family, const bool bold, const bool italic, const double pointsize,
+                                        const std::string& text, bool UTF8,
+                                        ML_TextBounds& bounds);
   private:
-  void LoadFont(const std::string &family, const bool bold, const bool italic);
+  void LoadFont(const std::string& family, const bool bold, const bool italic);
 
 };
 
@@ -74,7 +74,7 @@ std::string UnixDeviceDriver::PlatformFontFamily(const pGEcontext gc) const {
 }
 
 
-void UnixDeviceDriver::LoadFont(const std::string &family, const bool bold, const bool italic) {
+void UnixDeviceDriver::LoadFont(const std::string& family, const bool bold, const bool italic) {
   // Check if font face is already loaded
   if ((family == details.fontfamily) && (bold == details.bold) && (italic == details.italic) && (face)) return;
 
@@ -119,8 +119,8 @@ void UnixDeviceDriver::LoadFont(const std::string &family, const bool bold, cons
   FcFini();
 }
 
-bool UnixDeviceDriver::PlatformTextBoundingRect(const std::string &family, const bool bold, const bool italic, const double pointsize,
-                                                const std::string &text, const bool UTF8, ML_TextBounds &bounds) {
+bool UnixDeviceDriver::PlatformTextBoundingRect(const std::string& family, const bool bold, const bool italic, const double pointsize,
+                                                const std::string& text, const bool UTF8, ML_TextBounds& bounds) {
 
   bounds.ascent = bounds.descent = bounds.width = bounds.height = 0;
 
