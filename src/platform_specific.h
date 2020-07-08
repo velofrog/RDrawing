@@ -5,6 +5,7 @@
 #include <Rinternals.h>
 #include <R_ext/Rdynload.h>
 #include <R_ext/GraphicsEngine.h>
+#include <string>
 #include <memory>
 
 struct ML_TextBounds {
@@ -23,12 +24,12 @@ class PlatformDeviceDriver {
 
   virtual std::string toUTF8(std::string& platform_string) { return platform_string; }
 
-  virtual void TextBoundingRect(const pGEcontext gc, const std::string& text, bool UTF8,
+  virtual void TextBoundingRect(const pGEcontext gc, const std::string& text, const bool UTF8,
                                 ML_TextBounds& bounds);
 
   virtual std::string PlatformFontFamily(const pGEcontext gc) const { return ""; };
   virtual bool PlatformTextBoundingRect(const std::string& family, const bool bold, const bool italic, const double pointsize,
-                                        const std::string& text, bool UTF8,
+                                        const std::string& text, const bool UTF8, const bool symbol,
                                         ML_TextBounds& bounds) { return false; };
 };
 

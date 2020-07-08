@@ -31,7 +31,7 @@ struct UnixDeviceDriver: PlatformDeviceDriver {
 
   virtual std::string PlatformFontFamily(const pGEcontext gc) const;
   virtual bool PlatformTextBoundingRect(const std::string& family, const bool bold, const bool italic, const double pointsize,
-                                        const std::string& text, bool UTF8,
+                                        const std::string& text, const bool UTF8, const bool symbol,
                                         ML_TextBounds& bounds);
   private:
   void LoadFont(const std::string& family, const bool bold, const bool italic);
@@ -120,7 +120,8 @@ void UnixDeviceDriver::LoadFont(const std::string& family, const bool bold, cons
 }
 
 bool UnixDeviceDriver::PlatformTextBoundingRect(const std::string& family, const bool bold, const bool italic, const double pointsize,
-                                                const std::string& text, const bool UTF8, ML_TextBounds& bounds) {
+                                                const std::string& text, const bool UTF8, const bool symbol,
+                                                ML_TextBounds& bounds) {
 
   bounds.ascent = bounds.descent = bounds.width = bounds.height = 0;
 
@@ -128,7 +129,7 @@ bool UnixDeviceDriver::PlatformTextBoundingRect(const std::string& family, const
     LoadFont(family, bold, italic);
   }
 
-  catch (std::exception &e) {
+  catch (std::exception& e) {
     return false;
   }
 
@@ -152,7 +153,7 @@ bool UnixDeviceDriver::PlatformTextBoundingRect(const std::string& family, const
       }
     }
 
-    catch (std::exception &e) {
+    catch (std::exception& e) {
       break;
     }
 

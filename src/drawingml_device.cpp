@@ -676,7 +676,7 @@ void DrawingMLDevice_text(double x, double y, const char *str, double rot, doubl
   double ty = y + cy - 0.5*bounds.height;   //
 
   std::string text(str);
-  text = context->platform->toUTF(str)
+  text = context->platform->toUTF8(text);
 
   context->objects.push_back(ML_Text(context->id++, tx, ty, tx + bounds.width, ty + bounds.height,
                                      text, hadj, attributes));

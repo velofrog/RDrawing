@@ -1,5 +1,7 @@
 #include "xml.h"
 #include <sstream>
+#define UTF_CPP_CPLUSPLUS 201703L
+#include "utf8.h"
 
 XMLNode::XMLNode(const std::string& name) {
   this->name = name;
@@ -29,20 +31,24 @@ bool XMLNode::empty() const {
 std::string XMLNode::XMLText(const std::string& str) {
   std::string result;
 
-  if (str.size() == 0) return result;
-  for (const char& c : str) {
-    if (c == '<')
-      result += "&lt;";
-    else if (c == '>')
-      result += "&gt;";
-    else if (c == '&')
-      result += "&amp;";
-    else if ((c < 32) || (c > 127)) {
-      result += "&#";
-      result += std::to_string(static_cast<int>(c));
-      result += ";";
-    } else
-      result.push_back(c);
+  std::string::const_iterator b = str.begin();
+  std::string::const_iterator e = str.end();
+
+  try {
+    while (b != e) {
+      uint32_t charcode;
+      charcode = utf8::next(b, e);
+      if (charcode == '<') result += "&lt;";
+      else if (charcode == '>') result += "&gt;";
+      else if (charcode == '&') result += "&amp;";
+      else if (charcode == '\"') result += "&quot;";
+      else if (charcode == '\'') result += "&apos;";
+      else if (charcode < 32) result += "&#" + std::to_string(charcode) + ";";
+      else utf8::append(charcode, std::back_inserter(result));
+    }
+  }
+
+  catch (std::exception& e) {
   }
 
   return result;

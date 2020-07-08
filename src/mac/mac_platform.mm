@@ -2,7 +2,34 @@
 #import <Foundation/Foundation.h>
 #include "../platform_specific.h"
 
-std::string FontFamilyName(const pGEcontext gc) {
+struct MacOSDeviceDriver: PlatformDeviceDriver {
+public:
+  MacOSDeviceDriver();
+  virtual ~MacOSDeviceDriver();
+
+  virtual std::string PlatformFontFamily(const pGEcontext gc) const;
+  virtual bool PlatformTextBoundingRect(const std::string& family, const bool bold, const bool italic,
+                                        const double pointsize, const std::string& text, const bool UTF8,
+                                        const bool symbol, ML_TextBounds& bounds);
+private:
+  CTFontRef CreateMacOSFont(const std::string& family, const bool bold, const bool italic, int pointsize);
+  std::string MacOSFontName(const std::string& fontfamily, const bool bold, const bool italic);
+
+};
+
+std::unique_ptr<PlatformDeviceDriver> NewPlatformDeviceDriver() {
+  return std::make_unique<MacOSDeviceDriver>();
+}
+
+MacOSDeviceDriver::MacOSDeviceDriver() {
+
+}
+
+MacOSDeviceDriver::~MacOSDeviceDriver() {
+
+}
+
+std::string MacOSDeviceDriver::PlatformFontFamily(const pGEcontext gc) const {
   if (gc == NULL) {
     return "Helvetica";
   } else if (gc->fontface == 5) {
@@ -20,75 +47,76 @@ std::string FontFamilyName(const pGEcontext gc) {
   return gc->fontfamily;
 }
 
-std::string FontName(const pGEcontext gc) {
-  if (gc == NULL) {
-    return "Helvetica";
-  } else {
-    std::string fontname = FontFamilyName(gc);
-    if (gc->fontface == 2)
-      fontname += " Bold";
-    else if (gc->fontface == 3)
-      fontname += " Oblique";
-    else if (gc->fontface == 4)
-      fontname += " Bold Oblique";
+std::string MacOSDeviceDriver::MacOSFontName(const std::string& fontfamily, const bool bold, const bool italic) {
+  std::string name = fontfamily;
 
-    return fontname;
+  if (bold && italic) {
+    name += " Bold Oblique";
+  } else if (bold) {
+    name += " Bold";
+  } else if (italic) {
+    name += " Oblique";
   }
+
+  return name;
 }
 
-CTFontRef CreateFont(const pGEcontext gc) {
+CTFontRef MacOSDeviceDriver::CreateMacOSFont(const std::string& family, const bool bold, const bool italic, int pointsize) {
   CTFontRef font = NULL;
 
   CFStringRef cf_fontname = CFStringCreateWithCString(kCFAllocatorDefault,
-    FontName(gc).c_str(), kCFStringEncodingUTF8);
+    MacOSFontName(family, bold, italic).c_str(), kCFStringEncodingUTF8);
 
   if (cf_fontname == NULL) return NULL;
 
-  font = CTFontCreateWithName(cf_fontname, (gc == NULL ? 10 : gc->ps * gc->cex), NULL);
+  font = CTFontCreateWithName(cf_fontname, pointsize, NULL);
   CFRelease(cf_fontname);
 
   return font;
 }
 
-void TextBoundingRect(const pGEcontext gc, const std::string &text, ML_TextBounds &bounds) {
+
+bool MacOSDeviceDriver::PlatformTextBoundingRect(const std::string& family, const bool bold, const bool italic,
+                                                 const double pointsize, const std::string& text, const bool UTF8,
+                                                 const bool symbol, ML_TextBounds& bounds) {
   bounds.ascent = bounds.descent = bounds.width = bounds.height = 0;
 
-  if (text.empty()) return;
+  if (text.empty()) return false;
 
   CFStringRef cf_text = CFStringCreateWithCString(kCFAllocatorDefault,
-    text.c_str(), (gc == NULL || gc->fontface != 5 ? kCFStringEncodingUTF8 : kCFStringEncodingMacSymbol));
+    text.c_str(), (symbol ? kCFStringEncodingMacSymbol : kCFStringEncodingUTF8));
 
-  if (cf_text == NULL) return;
+  if (cf_text == NULL) return false;
 
-  CTFontRef font = CreateFont(gc);
+  CTFontRef font = CreateMacOSFont(family, bold, italic, pointsize);
   if (font == NULL) {
     Rcpp::Rcerr << "Failed to create font\n";
     CFRelease(cf_text);
-    return;
+    return false;
   }
 
   CFIndex length = CFStringGetLength(cf_text);
   if (length <= 0) {
     CFRelease(font);
     CFRelease(cf_text);
-    return;
+    return false;
   }
 
   UniChar *characters = (UniChar *)malloc(sizeof(UniChar) * length);
   if (characters == NULL) {
-    Rcpp::Rcerr << "Memory allocation failed in TextBoundingRect\n";
+    Rcpp::Rcerr << "Memory allocation failed in PlatformTextBoundingRect\n";
     CFRelease(font);
     CFRelease(cf_text);
-    return;
+    return false;
   }
 
   CGGlyph *glyphs = (CGGlyph *)malloc(sizeof(CGGlyph) * length);
   if (glyphs == NULL) {
-    Rcpp::Rcerr << "Memory allocation failed in TextBoundingRect\n";
+    Rcpp::Rcerr << "Memory allocation failed in PlatformTextBoundingRect\n";
     free(characters);
     CFRelease(font);
     CFRelease(cf_text);
-    return;
+    return false;
   }
 
   CFStringGetCharacters(cf_text, CFRangeMake(0, length), characters);
@@ -104,4 +132,6 @@ void TextBoundingRect(const pGEcontext gc, const std::string &text, ML_TextBound
   free(characters);
   CFRelease(font);
   CFRelease(cf_text);
+
+  return true;
 }
