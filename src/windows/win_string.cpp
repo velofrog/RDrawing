@@ -17,3 +17,11 @@ bool UTF8ToWideChar(const std::string& src, std::wstring& dest) {
   dest.resize(req_size);
   return (MultiByteToWideChar(CP_UTF8, 0, src.c_str(), src.length(), (LPWSTR)dest.data(), req_size) != 0);
 }
+
+bool AnsiToWideChar(const std::string& src, std::wstring& dest) {
+  std::size_t req_size = MultiByteToWideChar(CP_ACP, 0, src.c_str(), src.length(), nullptr, 0);
+
+  if (req_size == 0) return false;
+  dest.resize(req_size);
+  return (MultiByteToWideChar(CP_ACP, 0, src.c_str(), src.length(), (LPWSTR)dest.data(), req_size) != 0);
+}

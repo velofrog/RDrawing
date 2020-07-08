@@ -7,15 +7,31 @@
 #include <string>
 #include <cmath>
 
-double FontPointSize(const pGEcontext gc) {
-  return (gc == NULL ? 10 : gc->ps * gc->cex);
+struct WindowsDeviceDriver: PlatformDeviceDriver {
+public:
+  WindowsDeviceDriver();
+  virtual ~WindowsDeviceDriver();
+
+  virtual std::string PlatformFontFamily(const pGEcontext gc) const;
+  virtual bool PlatformTextBoundingRect(const std::string &family, const bool bold, const bool italic, const double pointsize,
+                                        const std::string &text, bool UTF8,
+                                        ML_TextBounds &bounds);
+private:
+  HFONT CreateWindowsFont(const std::string &family, const bool bold, const bool italic, int pixelHeight);
+
+};
+
+std::unique_ptr<PlatformDeviceDriver> NewPlatformDeviceDriver() {
+  return std::make_unique<WindowsDeviceDriver>();
 }
 
-int FontPixelHeight(const pGEcontext gc, int dpiY) {
-  return MulDiv(static_cast<int>(std::floor(FontPointSize(gc) + 0.5)), dpiY, 72);
+WindowsDeviceDriver::WindowsDeviceDriver() {
 }
 
-std::string FontFamilyName(const pGEcontext gc) {
+WindowsDeviceDriver::~WindowsDeviceDriver() {
+}
+
+std::string WindowsDeviceDriver::PlatformFontFamily(const pGEcontext gc) const {
   if (gc == NULL) {
     return "Arial";
   } else if (gc->fontface == 5) {
@@ -33,18 +49,15 @@ std::string FontFamilyName(const pGEcontext gc) {
   return gc->fontfamily;
 }
 
-HFONT CreateWindowsFont(const pGEcontext gc, int pixelHeight) {
+HFONT WindowsDeviceDriver::CreateWindowsFont(const std::string &family, const bool bold, const bool italic, int pixelHeight) {
   HFONT hFont;
-  bool bold = (gc == NULL ? false : (gc->fontface == 2 || gc->fontface == 4));
-  bool italic = (gc == NULL ? false : (gc->fontface == 3 || gc->fontface == 4));
-
   hFont = CreateFontA(-pixelHeight, 0, 0, 0,
                       (bold ? FW_BOLD : FW_REGULAR), (italic ? 1 : 0),
-                      0, 0, 0, 0, 0, 0, 0, FontFamilyName(gc).c_str());
+                      0, 0, 0, 0, 0, 0, 0, family.c_str());
 
   if (hFont == NULL) {
     // Fallback to Arial
-    Rcpp::Rcerr << "Cannot create font '" << FontFamilyName(gc) << "'. Falling back to Arial\n";
+    Rcpp::Rcerr << "Cannot create font '" << family << "'. Falling back to Arial\n";
     hFont = CreateFontA(-pixelHeight, 0, 0, 0,
                         (bold ? FW_BOLD : FW_REGULAR), (italic ? 1 : 0),
                         0, 0, 0, 0, 0, 0, 0, "Arial");
@@ -57,15 +70,24 @@ HFONT CreateWindowsFont(const pGEcontext gc, int pixelHeight) {
   return hFont;
 }
 
-void TextBoundingRect(const pGEcontext gc, const std::string &text, ML_TextBounds &bounds) {
+bool WindowsDeviceDriver::PlatformTextBoundingRect(const std::string &family, const bool bold, const bool italic, const double pointsize,
+                                                   const std::string &text, const bool UTF8, ML_TextBounds &bounds) {
+
   bounds.ascent = bounds.descent = bounds.width = bounds.height = 0;
-  if (text.empty()) return;
+  if (text.empty()) return true;
 
   std::wstring wstr;
 
-  if (!UTF8ToWideChar(text, wstr)) {
-    Rcpp::Rcerr << "UTF8 conversion error\n";
-    return;
+  if (UTF8) {
+    if (!UTF8ToWideChar(text, wstr)) {
+      Rcpp::Rcerr << "UTF8 conversion error\n";
+      return false;
+    }
+  } else {
+    if (!AnsiToWideChar(text, wstr)) {
+      Rcpp::Rcerr << "Windows default ANSI to wide string conversion error\n";
+      return false;
+    }
   }
 
   HDC hDC = GetDC(NULL);
@@ -76,12 +98,12 @@ void TextBoundingRect(const pGEcontext gc, const std::string &text, ML_TextBound
   TEXTMETRICA tm;
 
   int dpiY = GetDeviceCaps(hDC, LOGPIXELSY);
-  int fontHeight = FontPixelHeight(gc, dpiY);
+  int fontHeight = MulDiv(static_cast<int>(std::floor(pointsize + 0.5)), dpiY, 72);
 
-  hFont = CreateWindowsFont(gc, FontPixelHeight(gc, dpiY));
+  hFont = CreateWindowsFont(family, bold, italic, fontHeight);
   if (hFont == NULL) {
     ReleaseDC(NULL, hDC);
-    return;
+    return false;
   }
 
   sysFont = (HFONT)SelectObject(hDC, hFont);
@@ -95,18 +117,20 @@ void TextBoundingRect(const pGEcontext gc, const std::string &text, ML_TextBound
       SelectObject(hDC, sysFont);
       DeleteObject(hFont);
       fontHeight = otm.otmEMSquare;
-      hFont = CreateWindowsFont(gc, fontHeight);
+      hFont = CreateWindowsFont(family, bold, italic, fontHeight);
       SelectObject(hDC, hFont);
       GetTextMetricsA(hDC, &tm);
     }
   }
 
-  bounds.ascent = static_cast<double>(tm.tmAscent) / static_cast<double>(fontHeight) * FontPointSize(gc);
-  bounds.descent = -static_cast<double>(tm.tmDescent) / static_cast<double>(fontHeight) * FontPointSize(gc);
+  bounds.ascent = static_cast<double>(tm.tmAscent) / static_cast<double>(fontHeight) * pointsize;
+  bounds.descent = -static_cast<double>(tm.tmDescent) / static_cast<double>(fontHeight) * pointsize;
   bounds.height = bounds.ascent - bounds.descent;
   bounds.width = static_cast<double>(size.cx) / static_cast<double>(GetDeviceCaps(hDC, LOGPIXELSX)) * 72.0f;
 
   SelectObject(hDC, sysFont);
   DeleteObject(hFont);
   ReleaseDC(NULL, hDC);
+
+  return true;
 }
