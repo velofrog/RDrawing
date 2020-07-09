@@ -4,6 +4,7 @@
 #include <fontconfig/fontconfig.h>
 #include <cmath>
 #include "../platform_specific.h"
+#define UTF_CPP_CPLUSPLUS 201703L
 #include "../utf8.h"
 
 struct FontDetails {

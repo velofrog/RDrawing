@@ -4,6 +4,8 @@
 #include "drawingml_device.h"
 #include "drawingml_xml.h"
 #include "zip_container.h"
+#define UTF_CPP_CPLUSPLUS 201703L
+#include "utf8.h"
 
 const double DrawingML_FontHeightScalar = 277.0 / 90.0 / 2.54;
 
@@ -26,7 +28,7 @@ void OfficeGraphicDevice(double width = 23.5 / 2.54, double height = 14.5 / 2.54
 
     dev = (pDevDesc) calloc(1, sizeof(DevDesc));
     if (dev == NULL) {
-      throw Rcpp::exception("OGDevice: Unable to allocation memory");
+      throw Rcpp::exception("OfficeGraphicDevice: Unable to allocation memory");
     }
 
     dev->left = dev->clipLeft = 0;
@@ -64,6 +66,12 @@ void OfficeGraphicDevice(double width = 23.5 / 2.54, double height = 14.5 / 2.54
     dev->haveTransparentBg = 2;
     dev->haveRaster = 2; // 2=>yes, but unimplemented
     dev->haveCapture = dev->haveLocator = 1;
+    dev->hasTextUTF8 = TRUE;
+#ifdef __APPLE__
+    dev->wantSymbolUTF8 = TRUE;
+#else
+    dev->wantSymbolUTF8 = TRUE;
+#endif
 
     // methods
     dev->activate = DrawingMLDevice_activate;
@@ -77,7 +85,8 @@ void OfficeGraphicDevice(double width = 23.5 / 2.54, double height = 14.5 / 2.54
     dev->clip = DrawingMLDevice_clip;
 
     dev->metricInfo = DrawingMLDevice_metricInfo;
-    dev->strWidth = DrawingMLDevice_strWidth;
+    dev->strWidth = DrawingMLDevice_strWidth; // For Symbol on MacOS
+    dev->strWidthUTF8 = DrawingMLDevice_strWidth;
 
     dev->raster = DrawingMLDevice_raster;
     dev->rect = DrawingMLDevice_rect;
@@ -87,6 +96,7 @@ void OfficeGraphicDevice(double width = 23.5 / 2.54, double height = 14.5 / 2.54
     dev->polyline = DrawingMLDevice_polyline;
     dev->polygon = DrawingMLDevice_polygon;
     dev->text = DrawingMLDevice_text;
+    dev->textUTF8 = DrawingMLDevice_text;
 
     dev->deviceSpecific = new ML_Context();
 
@@ -507,11 +517,18 @@ void DrawingMLDevice_close(pDevDesc dd) {
       }
     );
 
+    // explicitly delete, and set to NULL
+    // otherwise R will try to free dd->deviceSpecific...
     delete context;
     dd->deviceSpecific = NULL;
   }
 
   catch (const std::exception& e) {
+    if (dd->deviceSpecific) {
+      delete context;
+      dd->deviceSpecific = NULL;
+    }
+
     throw Rcpp::exception(e.what());
   }
 }
@@ -547,8 +564,12 @@ void DrawingMLDevice_metricInfo(int c, const pGEcontext gc, double *ascent, doub
   if (gc == NULL) return;
 
   std::string str;
-  if (c < 0) c = -c;
-  str.push_back(c);
+
+  // hasUTF8 set to TRUE. c < 0 is a unicode point
+  if (c < 0) {
+    utf8::append(-c, str);
+  } else
+    str.push_back(c);
 
   ML_TextBounds bounds;
   ML_Context *context = (ML_Context *)dd->deviceSpecific;
@@ -571,7 +592,7 @@ double DrawingMLDevice_strWidth(const char *str, const pGEcontext gc, pDevDesc d
   if (context == NULL) return 0;
   if (context->platform == nullptr) return 0;
 
-  context->platform->TextBoundingRect(gc, str, false, bounds);
+  context->platform->TextBoundingRect(gc, str, true, bounds);
 
   return bounds.width;
 }
@@ -650,7 +671,7 @@ void DrawingMLDevice_text(double x, double y, const char *str, double rot, doubl
   if (context->platform == nullptr) return;
 
   ML_TextBounds bounds;
-  context->platform->TextBoundingRect(gc, str, false, bounds);
+  context->platform->TextBoundingRect(gc, str, true, bounds);
 
   if (bounds.empty()) return;
 
@@ -675,9 +696,8 @@ void DrawingMLDevice_text(double x, double y, const char *str, double rot, doubl
   double tx = x + cx - 0.5*bounds.width;    // top left point of unrotated rect
   double ty = y + cy - 0.5*bounds.height;   //
 
-  std::string text(str);
-  text = context->platform->toUTF8(text);
+  // Do we need any special handling for symbol (fontface == 5)?
 
   context->objects.push_back(ML_Text(context->id++, tx, ty, tx + bounds.width, ty + bounds.height,
-                                     text, hadj, attributes));
+                                     str, hadj, attributes));
 }

@@ -10,7 +10,7 @@ void PlatformDeviceDriver::TextBoundingRect(const pGEcontext gc, const std::stri
     try {
         PlatformTextBoundingRect(fontfamily, bold, italic,
             (gc ? gc->ps * gc->cex : 10),
-            text, UTF8, gc->fontface == 5, bounds);
+            text, UTF8, (gc ? gc->fontface == 5 : false), bounds);
     }
 
     catch (std::exception& e) {

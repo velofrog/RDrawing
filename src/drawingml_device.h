@@ -197,7 +197,7 @@ struct ML_Text : ML_BaseType {
   ML_Alignment align;
   ML_Attributes attributes;
 
-  ML_Text(int id, double x0, double y0, double x1, double y1, std::string &text, ML_Alignment align, ML_Attributes attributes) {
+  ML_Text(int id, double x0, double y0, double x1, double y1, const std::string &text, ML_Alignment align, ML_Attributes attributes) {
     this->id = id;
     this->x0 = x0;
     this->y0 = y0;
