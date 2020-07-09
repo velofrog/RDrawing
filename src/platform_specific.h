@@ -22,8 +22,6 @@ class PlatformDeviceDriver {
   PlatformDeviceDriver() {};
   virtual ~PlatformDeviceDriver() {};
 
-  virtual std::string toUTF8(std::string& platform_string) { return platform_string; }
-
   virtual void TextBoundingRect(const pGEcontext gc, const std::string& text, const bool UTF8,
                                 ML_TextBounds& bounds);
 

@@ -84,7 +84,7 @@ bool MacOSDeviceDriver::PlatformTextBoundingRect(const std::string& family, cons
   if (text.empty()) return false;
 
   CFStringRef cf_text = CFStringCreateWithCString(kCFAllocatorDefault,
-    text.c_str(), (symbol ? kCFStringEncodingMacSymbol : kCFStringEncodingUTF8));
+    text.c_str(), (false ? kCFStringEncodingMacSymbol : kCFStringEncodingUTF8));
 
   if (cf_text == NULL) return false;
 

@@ -12,7 +12,6 @@ public:
   WindowsDeviceDriver();
   virtual ~WindowsDeviceDriver();
 
-  virtual std::string toUTF8(std::string& platform_string);
   virtual std::string PlatformFontFamily(const pGEcontext gc) const;
   virtual bool PlatformTextBoundingRect(const std::string& family, const bool bold, const bool italic, const double pointsize,
                                         const std::string& text, const bool UTF8, const bool symbol,
@@ -30,15 +29,6 @@ WindowsDeviceDriver::WindowsDeviceDriver() {
 }
 
 WindowsDeviceDriver::~WindowsDeviceDriver() {
-}
-
-std::string WindowsDeviceDriver::toUTF8(std::string& platform_string) {
-  std::wstring wstr;
-  std::string dest;
-
-  AnsiToWideChar(platform_string, wstr);
-  WideCharToUTF8(wstr, dest);
-  return dest;
 }
 
 std::string WindowsDeviceDriver::PlatformFontFamily(const pGEcontext gc) const {

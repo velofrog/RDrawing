@@ -59,19 +59,13 @@ void OfficeGraphicDevice(double width = 23.5 / 2.54, double height = 14.5 / 2.54
     dev->startfont = 1;
     dev->displayListOn = FALSE; // Unsure. Seems screen's are true, others (png, pdf, etc) are false
 
-    //dev->hasTextUTF8 = TRUE;
-    //dev->wantSymbolUTF8 = TRUE;
     dev->canGenMouseDown = dev->canGenMouseMove = dev->canGenMouseUp = dev->canGenKeybd = FALSE;
     dev->haveTransparency = 2;
     dev->haveTransparentBg = 2;
     dev->haveRaster = 2; // 2=>yes, but unimplemented
     dev->haveCapture = dev->haveLocator = 1;
     dev->hasTextUTF8 = TRUE;
-#ifdef __APPLE__
     dev->wantSymbolUTF8 = TRUE;
-#else
-    dev->wantSymbolUTF8 = TRUE;
-#endif
 
     // methods
     dev->activate = DrawingMLDevice_activate;
@@ -565,8 +559,9 @@ void DrawingMLDevice_metricInfo(int c, const pGEcontext gc, double *ascent, doub
 
   std::string str;
 
-  // hasUTF8 set to TRUE. c < 0 is a unicode point
+  // Because hasUTF8 is set to TRUE, when c < 0 it's a unicode point
   if (c < 0) {
+    Rcpp::Rcout << "Was asked about a unicode character -- " << -c << "\n";
     utf8::append(-c, str);
   } else
     str.push_back(c);
@@ -580,7 +575,6 @@ void DrawingMLDevice_metricInfo(int c, const pGEcontext gc, double *ascent, doub
   *descent = -bounds.descent * DrawingML_FontHeightScalar;
   *ascent = bounds.ascent;
   *width = bounds.width;
-  Rcpp::Rcout << "Metrics [Ascent: " << *ascent << "; Descent: " << *descent << "]. [Width: " << *width << "]\n";
 }
 
 double DrawingMLDevice_strWidth(const char *str, const pGEcontext gc, pDevDesc dd) {
@@ -675,8 +669,6 @@ void DrawingMLDevice_text(double x, double y, const char *str, double rot, doubl
 
   if (bounds.empty()) return;
 
-  Rcpp::Rcout << "TextBounds [Ascent: " << bounds.ascent << "; Descent: " << bounds.descent << "]. [Width: " << bounds.width << "; Height: " << bounds.height << "]\n";
-
   bounds.height *= DrawingML_FontHeightScalar;
 
   ML_Attributes attributes(*context->platform, gc);
@@ -697,6 +689,9 @@ void DrawingMLDevice_text(double x, double y, const char *str, double rot, doubl
   double ty = y + cy - 0.5*bounds.height;   //
 
   // Do we need any special handling for symbol (fontface == 5)?
+  if (gc->fontface == 5) {
+    Rcpp::Rcout << "Asking for symbol. Char = " << str << "  [" << static_cast<int>(str[0]) << "]\n";
+  }
 
   context->objects.push_back(ML_Text(context->id++, tx, ty, tx + bounds.width, ty + bounds.height,
                                      str, hadj, attributes));
