@@ -1,9 +1,61 @@
-#!/bin/bash
+#!/bin/sh
+
+OS_PLATFORM=$(uname -s)
+
+check_library() {
+    # Try pkg-config
+    pkg-config --version >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        echo "----------------------------- ERROR --------------------------------"
+        echo "Configuration failed. Check that 'pkg-config' is in your PATH"
+        echo "If pkg-config is unavailable you can set INCLUDE_DIR and LIB_DIR"
+        echo "to point to header and library files for $1 via:"
+        echo "  R CMD INSTALL --configure-vars='INCLUDE_DIR=... LIB_DIR=...'"
+        echo "--------------------------------------------------------------------"
+        exit 1;
+    else
+        pkg-config --cflags --libs >/dev/null 2>&1
+
+        if [ $? -ne 0 ]; then
+            echo "----------------------------- ERROR --------------------------------"
+            echo "Configuration failed because the $1 development files were not found." 
+            echo "Try installing:"
+            echo " * deb: $2 (Debian, Ubuntu, etc)"
+            echo " * rpm: $3 (Fedora, CentOS, RHEL)"
+            echo " * csw: $4 (Solaris)"
+            echo ""
+            echo "If $1 is already installed, check that 'pkg-config' is in your"
+            echo "PATH and PKG_CONFIG_PATH contains a $1.pc file. If pkg-config"
+            echo "is unavailable you can set INCLUDE_DIR and LIB_DIR manually via:"
+            echo " R CMD INSTALL --configure-vars='INCLUDE_DIR=... LIB_DIR=...'"
+            echo "--------------------------------------------------------------------"
+            exit 1;
+        fi
+
+        PKGCFG_CFLAGS+="$(pkg-config --cflags $1)"
+        PKGCFG_LIBS+="$(pkg-config --libs $1)"
+    fi
+}
+
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
   SYS="mac"
 else
   SYS="unix"
+    # On *nix, we build we freetype2 and fontconfig
+    # Of course, ROfficeDrawing doesn't actually produce anything usable on
+    # a (U|Li)nux system
+    if [ "$INCLUDE_DIR" ] || [ "$LIB_DIR" ]; then
+        PKGCFG_CFLAGS="-I$INCLUDE_DIR"
+        PKGCFG_LIBS="-L$LIB_DIR"
+    else
+        PKGCFG_CFLAGS=""
+        PKGCFG_LIBS=""
+        check_library freetype2 libfreetype-dev libfreetype-devel libfreetype_dev
+        check_library fontconfig libfontconfig1-dev fontconfig-devel fontconfig_dev
+    fi
+    echo $PKGCFG_CFLAGS
+    echo $PKGCFG_LIBS
 fi
 
 # Write to Makevars
