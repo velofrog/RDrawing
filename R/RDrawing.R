@@ -23,8 +23,8 @@ NULL
 NULL
 
 #' @export
-OGDevice = function(width = 23.5 / 2.54, height = 14.5 / 2.54, pointsize = 10, font = "Arial") {
-  OfficeGraphicDevice(width, height, pointsize, font)
+drawing = function(width = 23.5 / 2.54, height = 14.5 / 2.54, pointsize = 10, font = "Arial") {
+  DrawingDevice(width, height, pointsize, font)
 }
 
 #' @export
