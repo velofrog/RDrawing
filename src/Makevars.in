@@ -7,8 +7,8 @@
 	mac_source_cpp =
 	mac_source_mm = mac/mac_clipboard.mm mac/mac_platform.mm
 ## unix specific sources and libraries
-	unix_libs = `pkg-config --libs freetype2 fontconfig`
-	unix_cxxflags = `pkg-config --cflags freetype2 fontconfig`
+	unix_libs = @pkgcfg_libs@
+	unix_cxxflags = @pkgcfg_cflags@
 	unix_source_cpp = unix/unix_clipboard.cpp unix/unix_platform.cpp
 	unix_source_mm =
 ##

@@ -14,7 +14,7 @@ check_library() {
         echo "--------------------------------------------------------------------"
         exit 1;
     else
-        pkg-config --cflags --libs >/dev/null 2>&1
+        pkg-config --cflags --libs $1 >/dev/null 2>&1
 
         if [ $? -ne 0 ]; then
             echo "----------------------------- ERROR --------------------------------"
@@ -32,31 +32,29 @@ check_library() {
             exit 1;
         fi
 
-        PKGCFG_CFLAGS+="$(pkg-config --cflags $1)"
-        PKGCFG_LIBS+="$(pkg-config --libs $1)"
+        PKGCFG_CFLAGS="${PKGCFG_CFLAGS} $(pkg-config --cflags $1)"
+        PKGCFG_LIBS="${PKGCFG_LIBS} $(pkg-config --libs $1)"
     fi
 }
 
+PKGCFG_CFLAGS=""
+PKGCFG_LIBS=""
 
-if [[ "$OSTYPE" == "darwin"* ]]; then
+if echo $OS_PLATFORM | grep -qi 'Darwin'; then
   SYS="mac"
 else
   SYS="unix"
-    # On *nix, we build we freetype2 and fontconfig
-    # Of course, ROfficeDrawing doesn't actually produce anything usable on
-    # a (U|Li)nux system
-    if [ "$INCLUDE_DIR" ] || [ "$LIB_DIR" ]; then
-        PKGCFG_CFLAGS="-I$INCLUDE_DIR"
-        PKGCFG_LIBS="-L$LIB_DIR"
-    else
-        PKGCFG_CFLAGS=""
-        PKGCFG_LIBS=""
-        check_library freetype2 libfreetype-dev libfreetype-devel libfreetype_dev
-        check_library fontconfig libfontconfig1-dev fontconfig-devel fontconfig_dev
-    fi
-    echo $PKGCFG_CFLAGS
-    echo $PKGCFG_LIBS
+  # On *nix, we build we freetype2 and fontconfig
+  # Of course, ROfficeDrawing doesn't actually produce anything usable on
+  # a (U|Li)nux system
+  if [ "$INCLUDE_DIR" ] || [ "$LIB_DIR" ]; then
+      PKGCFG_CFLAGS="-I$INCLUDE_DIR"
+      PKGCFG_LIBS="-L$LIB_DIR"
+  else
+      check_library freetype2 libfreetype-dev libfreetype-devel libfreetype_dev
+      check_library fontconfig libfontconfig1-dev fontconfig-devel fontconfig_dev
+  fi
 fi
 
-# Write to Makevars
-sed -e "s|@sys@|$SYS|g" src/Makevars.in > src/Makevars
+# Replace @sys@ with $SYS, and @pkgcfg_xxx@ with $PKFCFG_xxx in Makevars
+sed -e "s|@sys@|$SYS|g" -e "s|@pkgcfg_cflags@|$PKGCFG_CFLAGS|g" -e "s|@pkgcfg_libs@|$PKGCFG_LIBS|g" src/Makevars.in > src/Makevars
