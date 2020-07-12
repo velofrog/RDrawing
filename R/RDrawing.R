@@ -1,4 +1,4 @@
-#' @useDynLib ROfficeGraphics, .registration = TRUE
+#' @useDynLib RDrawing, .registration = TRUE
 #' @import Rcpp
 NULL
 
