@@ -11,8 +11,8 @@ const double DrawingML_FontHeightScalar = 277.0 / 90.0 / 2.54;
 
 //' @export
 // [[Rcpp::export]]
-void OfficeGraphicDevice(double width = 23.5 / 2.54, double height = 14.5 / 2.54,
-                         double pointsize = 10, std::string font = "Arial") {
+void DrawingDevice(double width = 23.5 / 2.54, double height = 14.5 / 2.54,
+                   double pointsize = 10, std::string font = "Arial") {
 
   if (std::isnan(width) || (width <= 0)) width = 23.5 / 2.54;
   if (std::isnan(height) || (height <= 0)) height = 14.5 / 2.54;
