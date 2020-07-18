@@ -2,11 +2,11 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #' @export
-OfficeGraphicDevice <- function(width = 23.5 / 2.54, height = 14.5 / 2.54, pointsize = 10, font = "Arial") {
-    invisible(.Call(`_ROfficeGraphics_OfficeGraphicDevice`, width, height, pointsize, font))
+DrawingDevice <- function(width = 23.5 / 2.54, height = 14.5 / 2.54, pointsize = 10, font = "Arial") {
+    invisible(.Call(`_RDrawing_DrawingDevice`, width, height, pointsize, font))
 }
 
 ZipAndSendToClipboard <- function(archive) {
-    invisible(.Call(`_ROfficeGraphics_ZipAndSendToClipboard`, archive))
+    invisible(.Call(`_RDrawing_ZipAndSendToClipboard`, archive))
 }
 

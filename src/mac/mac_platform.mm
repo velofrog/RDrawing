@@ -10,7 +10,7 @@ public:
   virtual std::string PlatformFontFamily(const pGEcontext gc) const;
   virtual bool PlatformTextBoundingRect(const std::string& family, const bool bold, const bool italic,
                                         const double pointsize, const std::string& text, const bool UTF8,
-                                        const bool symbol, ML_TextBounds& bounds);
+                                        const bool symbol, Drawing_TextBounds& bounds);
 private:
   CTFontRef CreateMacOSFont(const std::string& family, const bool bold, const bool italic, int pointsize);
   std::string MacOSFontName(const std::string& fontfamily, const bool bold, const bool italic);
@@ -78,7 +78,7 @@ CTFontRef MacOSDeviceDriver::CreateMacOSFont(const std::string& family, const bo
 
 bool MacOSDeviceDriver::PlatformTextBoundingRect(const std::string& family, const bool bold, const bool italic,
                                                  const double pointsize, const std::string& text, const bool UTF8,
-                                                 const bool symbol, ML_TextBounds& bounds) {
+                                                 const bool symbol, Drawing_TextBounds& bounds) {
   bounds.ascent = bounds.descent = bounds.width = bounds.height = 0;
 
   if (text.empty()) return false;

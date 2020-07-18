@@ -1,6 +1,6 @@
 #include "platform_specific.h"
 
-void PlatformDeviceDriver::TextBoundingRect(const pGEcontext gc, const std::string &text, const bool UTF8, ML_TextBounds &bounds) {
+void PlatformDeviceDriver::TextBoundingRect(const pGEcontext gc, const std::string &text, const bool UTF8, Drawing_TextBounds &bounds) {
     std::string fontfamily = PlatformFontFamily(gc);
     bool bold = (gc ? (gc->fontface == 2 || gc->fontface == 4) : false);
     bool italic = (gc ? (gc->fontface == 3 || gc->fontface == 4) : false);

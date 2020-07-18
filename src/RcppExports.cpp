@@ -5,22 +5,22 @@
 
 using namespace Rcpp;
 
-// OfficeGraphicDevice
-void OfficeGraphicDevice(double width, double height, double pointsize, std::string font);
-RcppExport SEXP _ROfficeGraphics_OfficeGraphicDevice(SEXP widthSEXP, SEXP heightSEXP, SEXP pointsizeSEXP, SEXP fontSEXP) {
+// DrawingDevice
+void DrawingDevice(double width, double height, double pointsize, std::string font);
+RcppExport SEXP _RDrawing_DrawingDevice(SEXP widthSEXP, SEXP heightSEXP, SEXP pointsizeSEXP, SEXP fontSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< double >::type width(widthSEXP);
     Rcpp::traits::input_parameter< double >::type height(heightSEXP);
     Rcpp::traits::input_parameter< double >::type pointsize(pointsizeSEXP);
     Rcpp::traits::input_parameter< std::string >::type font(fontSEXP);
-    OfficeGraphicDevice(width, height, pointsize, font);
+    DrawingDevice(width, height, pointsize, font);
     return R_NilValue;
 END_RCPP
 }
 // ZipAndSendToClipboard
 void ZipAndSendToClipboard(Rcpp::Environment archive);
-RcppExport SEXP _ROfficeGraphics_ZipAndSendToClipboard(SEXP archiveSEXP) {
+RcppExport SEXP _RDrawing_ZipAndSendToClipboard(SEXP archiveSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::Environment >::type archive(archiveSEXP);
@@ -30,12 +30,12 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_ROfficeGraphics_OfficeGraphicDevice", (DL_FUNC) &_ROfficeGraphics_OfficeGraphicDevice, 4},
-    {"_ROfficeGraphics_ZipAndSendToClipboard", (DL_FUNC) &_ROfficeGraphics_ZipAndSendToClipboard, 1},
+    {"_RDrawing_DrawingDevice", (DL_FUNC) &_RDrawing_DrawingDevice, 4},
+    {"_RDrawing_ZipAndSendToClipboard", (DL_FUNC) &_RDrawing_ZipAndSendToClipboard, 1},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_ROfficeGraphics(DllInfo *dll) {
+RcppExport void R_init_RDrawing(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

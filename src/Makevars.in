@@ -18,7 +18,7 @@ PKG_CXXFLAGS += $(@sys@_cxxflags)
 CXX_STD = CXX17
 OBJCXXFLAGS += $(CXX17STD)
 
-SOURCES_CPP = RcppExports.cpp zip_container.cpp platform_specific.cpp drawingml_device.cpp xml.cpp drawingml_xml.cpp $(@sys@_source_cpp)
+SOURCES_CPP = RcppExports.cpp zip_container.cpp platform_specific.cpp drawing_device.cpp xml.cpp drawingml.cpp $(@sys@_source_cpp)
 SOURCES_MM = $(@sys@_source_mm)
 OBJECTS = $(SOURCES_CPP:.cpp=.o) $(SOURCES_MM:.mm=.o)
 

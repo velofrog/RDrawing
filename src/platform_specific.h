@@ -8,7 +8,7 @@
 #include <string>
 #include <memory>
 
-struct ML_TextBounds {
+struct Drawing_TextBounds {
   double width;
   double height;
   double ascent;
@@ -23,12 +23,12 @@ class PlatformDeviceDriver {
   virtual ~PlatformDeviceDriver() {};
 
   virtual void TextBoundingRect(const pGEcontext gc, const std::string& text, const bool UTF8,
-                                ML_TextBounds& bounds);
+                                Drawing_TextBounds& bounds);
 
   virtual std::string PlatformFontFamily(const pGEcontext gc) const { return ""; };
   virtual bool PlatformTextBoundingRect(const std::string& family, const bool bold, const bool italic, const double pointsize,
                                         const std::string& text, const bool UTF8, const bool symbol,
-                                        ML_TextBounds& bounds) { return false; };
+                                        Drawing_TextBounds& bounds) { return false; };
 };
 
 std::unique_ptr<PlatformDeviceDriver> NewPlatformDeviceDriver();
