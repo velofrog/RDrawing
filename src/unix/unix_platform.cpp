@@ -33,7 +33,7 @@ struct UnixDeviceDriver: PlatformDeviceDriver {
   virtual std::string PlatformFontFamily(const pGEcontext gc) const;
   virtual bool PlatformTextBoundingRect(const std::string& family, const bool bold, const bool italic, const double pointsize,
                                         const std::string& text, const bool UTF8, const bool symbol,
-                                        DD_TextBounds& bounds);
+                                        Drawing_TextBounds& bounds);
   private:
   void LoadFont(const std::string& family, const bool bold, const bool italic);
 
@@ -122,7 +122,7 @@ void UnixDeviceDriver::LoadFont(const std::string& family, const bool bold, cons
 
 bool UnixDeviceDriver::PlatformTextBoundingRect(const std::string& family, const bool bold, const bool italic, const double pointsize,
                                                 const std::string& text, const bool UTF8, const bool symbol,
-                                                DD_TextBounds& bounds) {
+                                                Drawing_TextBounds& bounds) {
 
   bounds.ascent = bounds.descent = bounds.width = bounds.height = 0;
 
