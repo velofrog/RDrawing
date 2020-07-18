@@ -151,6 +151,7 @@ bool UnixDeviceDriver::PlatformTextBoundingRect(const std::string& family, const
         charcode = utf8::next(b, e);
       } else {
         charcode = static_cast<uint8_t>(*b);
+        b++;
       }
     }
 

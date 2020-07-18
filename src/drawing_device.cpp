@@ -251,7 +251,7 @@ void DrawingDevice_metricInfo(int c, const pGEcontext gc, double *ascent, double
   Drawing_Context *context = (Drawing_Context *)dd->deviceSpecific;
   if (context == NULL) return;
   if (context->platform == nullptr) return;
-  context->platform->TextBoundingRect(gc, str, false, bounds);
+  context->platform->TextBoundingRect(gc, str, true, bounds);
 
   *descent = -bounds.descent * Drawing_FontHeightScalar;
   *ascent = bounds.ascent;
