@@ -198,7 +198,6 @@ struct Drawing_Text : Drawing_Geom {
     this->text = text;
     this->align = align;
     this->attributes = attributes;
-
   }
   virtual std::vector<XMLNode> xml() const = 0;
 };
@@ -213,7 +212,7 @@ struct Drawing_Context {
 
   Drawing_Context();
   virtual ~Drawing_Context() {}
-  virtual void initialise(double width, double height);
+  virtual void initialise(double width, double height) = 0;
   virtual void group(int id, double width, double height, std::string name = "") = 0;
   virtual void group(int id, double x, double y, double width, double height, std::string name, std::vector<std::shared_ptr<Drawing_Geom>> &interior_objects) = 0;
   virtual void rect(int id, double x0, double y0, double x1, double y1, Drawing_Attributes attributes) = 0;

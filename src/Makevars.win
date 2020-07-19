@@ -1,5 +1,5 @@
 CXX_STD = CXX17
-SOURCES_CPP = RcppExports.cpp windows/win_clipboard.cpp windows/win_platform.cpp windows/win_string.cpp zip_container.cpp platform_specific.cpp drawing_device.cpp xml.cpp drawingml_xml.cpp
+SOURCES_CPP = RcppExports.cpp windows/win_clipboard.cpp windows/win_platform.cpp windows/win_string.cpp zip_container.cpp platform_specific.cpp drawing_device.cpp xml.cpp drawingml.cpp
 PKG_LIBS += -luser32 -lgdi32
 OBJECTS = $(SOURCES_CPP:.cpp=.o)
 

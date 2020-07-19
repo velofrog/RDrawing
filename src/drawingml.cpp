@@ -270,6 +270,13 @@ std::vector<XMLNode> DrawingML_Text::xml() const {
     };
 }
 
+void DrawingML_Context::initialise(double width, double height) {
+  objects.clear();
+  canvasWidth = width;
+  canvasHeight = height;
+  id = 2; // reserve id 0 for Canvas, id 1 for MainGroup
+}
+
 std::vector<std::pair<std::string, std::string>> DrawingML_Context::container() {
   std::vector<std::shared_ptr<Drawing_Geom>> canvas;
 

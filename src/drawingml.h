@@ -58,6 +58,7 @@ struct DrawingML_Context : Drawing_Context {
     DrawingML_Context() : Drawing_Context() {}
     virtual ~DrawingML_Context() {}
 
+    virtual void initialise(double width, double height);
     virtual void group(int id, double width, double height, std::string name = "") {
         objects.emplace_back(std::make_shared<DrawingML_Group>(id, width, height, name));
     }

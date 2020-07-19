@@ -168,10 +168,7 @@ Drawing_Context::Drawing_Context() {
 }
 
 void Drawing_Context::initialise(double width, double height) {
-  objects.clear();
-  canvasWidth = width;
-  canvasHeight = height;
-  id = 2; // id 0=>Canvas, id 1=>MainGroup
+
 }
 
 void DrawingDevice_activate(pDevDesc) {

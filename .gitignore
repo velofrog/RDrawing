@@ -45,3 +45,6 @@ vignettes/*.pdf
 *.dll
 .Rbuildignore
 src/Makevars
+src-x64/
+src-i386/
+
