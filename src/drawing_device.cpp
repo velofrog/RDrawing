@@ -373,3 +373,24 @@ void DrawingDevice_text(double x, double y, const char *str, double rot, double 
 
   context->text(context->id++, tx, ty, tx + bounds.width, ty + bounds.height, str, hadj, attributes);
 }
+
+SEXP DrawingDevice_setPattern(SEXP pattern, pDevDesc dd) {
+  return R_NilValue;
+}
+
+void DrawingDevice_releasePattern(SEXP ref, pDevDesc dd) {
+}
+
+SEXP DrawingDevice_setClipPath(SEXP path, SEXP ref, pDevDesc dd) {
+  return R_NilValue;
+}
+
+void DrawingDevice_releaseClipPath(SEXP path, pDevDesc dd) {
+}
+
+SEXP DrawingDevice_setMask(SEXP path, SEXP ref, pDevDesc dd) {
+  return R_NilValue;
+}
+
+void DrawingDevice_releaseMask(SEXP ref, pDevDesc dd) {
+}
