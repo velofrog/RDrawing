@@ -243,4 +243,10 @@ void DrawingDevice_circle(double x, double y, double r, const pGEcontext gc, pDe
 void DrawingDevice_polyline(int n, double *x, double *y, const pGEcontext gc, pDevDesc dd);
 void DrawingDevice_polygon(int n, double *x, double *y, const pGEcontext gc, pDevDesc dd);
 void DrawingDevice_text(double x, double y, const char *str, double rot, double hadj, const pGEcontext gc, pDevDesc dd);
+SEXP DrawingDevice_setPattern(SEXP pattern, pDevDesc dd);
+void DrawingDevice_releasePattern(SEXP ref, pDevDesc dd);
+SEXP DrawingDevice_setClipPath(SEXP path, SEXP ref, pDevDesc dd);
+void DrawingDevice_releaseClipPath(SEXP path, pDevDesc dd);
+SEXP DrawingDevice_setMask(SEXP path, SEXP ref, pDevDesc dd);
+void DrawingDevice_releaseMask(SEXP ref, pDevDesc dd);
 
