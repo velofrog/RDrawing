@@ -1,5 +1,6 @@
 #include <Rcpp.h>
 #import <Foundation/Foundation.h>
+#import <CoreText/CoreText.h>
 #include "../platform_specific.h"
 
 struct MacOSDeviceDriver: PlatformDeviceDriver {
