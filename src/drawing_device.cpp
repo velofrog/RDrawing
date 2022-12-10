@@ -91,6 +91,14 @@ void DrawingDevice(double width = 23.5 / 2.54, double height = 14.5 / 2.54,
     dev->polygon = DrawingDevice_polygon;
     dev->text = DrawingDevice_text;
     dev->textUTF8 = DrawingDevice_text;
+    
+    // New functions introduced in R_GE_version 13
+    dev->setPattern = DrawingDevice_setPattern;
+    dev->releasePattern = DrawingDevice_releasePattern;
+    dev->setClipPath = DrawingDevice_setClipPath;
+    dev->releaseClipPath = DrawingDevice_releaseClipPath;
+    dev->setMask = DrawingDevice_setMask;
+    dev->releaseMask = DrawingDevice_releaseMask;
 
     dev->deviceSpecific = new DrawingML_Context();
 
